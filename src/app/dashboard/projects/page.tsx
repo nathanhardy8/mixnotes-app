@@ -104,7 +104,7 @@ export default function ProjectsPage() {
                             filteredProjects.map(project => (
                                 <Link
                                     key={project.id}
-                                    href={`/project/${project.id}`}
+                                    href={`/projects/${project.id}`}
                                     className={styles.row}
                                 >
                                     <div className={styles.colTitle}>

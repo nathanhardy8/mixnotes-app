@@ -78,7 +78,7 @@ export default function CommentsPage() {
                     {items.map(item => (
                         <Link
                             key={item.projectId}
-                            href={`/project/${item.projectId}`}
+                            href={`/projects/${item.projectId}`}
                             className={styles.itemCard}
                         >
                             <div className={styles.itemLeft}>

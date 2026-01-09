@@ -5,7 +5,7 @@ import { Share2, Copy, Check, ExternalLink } from 'lucide-react';
 import { Project } from '@/types';
 import { projectService } from '@/services/projectService';
 import { clientService } from '@/services/clientService';
-import styles from '@/app/project/[id]/styles.module.css';
+import styles from '@/app/projects/[id]/styles.module.css';
 
 interface ClientSharingPanelProps {
     project: Project;

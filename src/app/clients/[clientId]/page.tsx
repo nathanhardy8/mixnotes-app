@@ -92,7 +92,7 @@ export default function ClientDetailsPage({ params }: { params: Promise<{ client
 
             <div className={styles.clientsGrid}>
                 {projects.map(project => (
-                    <Link href={`/project/${project.id}`} key={project.id} className={styles.clientCard}>
+                    <Link href={`/projects/${project.id}`} key={project.id} className={styles.clientCard}>
                         <div className={styles.clientName}>{project.title}</div>
                         <div className={styles.clientMeta}>
                             {project.isLocked ? '🔒 Locked' : '🔓 Open'} • {new Date(project.createdAt).toLocaleDateString()}

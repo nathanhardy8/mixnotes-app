@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useUser } from '@/context/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from './styles.module.css';
 
-export default function LoginPage() {
+function LoginForm() {
     const { login, signup, currentUser } = useUser();
     const router = useRouter();
 
@@ -143,5 +143,13 @@ export default function LoginPage() {
                 <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>← Back to Home</Link>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#0f172a', color: 'white' }}>Loading...</div>}>
+            <LoginForm />
+        </Suspense>
     );
 }

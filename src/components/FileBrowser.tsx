@@ -356,7 +356,7 @@ export default function FileBrowser({
                                 className={styles.rowWrapper} // Wrapper to separate Link from Actions
                             >
                                 <Link
-                                    href={`/project/${project.id}`}
+                                    href={`/projects/${project.id}`}
                                     className={styles.rowLink}
                                 >
                                     <div className={styles.row}>

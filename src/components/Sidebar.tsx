@@ -51,7 +51,7 @@ export default function Sidebar() {
                     } else if (item.href === '/dashboard') {
                         // "Clients" (Root) matches exactly /dashboard, 
                         // sub-client paths /dashboard/client/..., 
-                        // and project paths /project/...
+                        // and project paths /projects/...
                         // But MUST NOT match the above specific sibling routes.
                         const isSiblingRoute = pathname.startsWith('/dashboard/billing') ||
                             pathname.startsWith('/dashboard/comments') ||
@@ -60,7 +60,7 @@ export default function Sidebar() {
                         isActive = !isSiblingRoute && (
                             pathname === '/dashboard' ||
                             pathname.startsWith('/dashboard/client') ||
-                            pathname.startsWith('/project') ||
+                            pathname.startsWith('/projects') ||
                             pathname.startsWith('/dashboard/folder') // If that exists
                         );
                     }

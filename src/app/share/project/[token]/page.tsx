@@ -42,11 +42,11 @@ export default function SharedProjectPage() {
 
                 // 4. Redirect to Project ID (Context is now hydrated)
                 // Note: The UserContext will persist this guest session in-memory.
-                // Redirecting to /project/[id] will load the real page.
+                // Redirecting to /projects/[id] will load the real page.
                 // The page relies on `getProject(id)` or `projectService.getProjectById(id)`.
                 // Standard getProjectById is protected by RLS? Yes usually.
                 // But wait!
-                // If I redirect to `/project/[id]`, the page will try to fetch with `projectService.getProjectById(id)`.
+                // If I redirect to `/projects/[id]`, the page will try to fetch with `projectService.getProjectById(id)`.
                 // This uses the standard supabase client.
                 // Since the user is NOT authenticated in Supabase (only in local context), RLS will block the read!
 
@@ -54,7 +54,7 @@ export default function SharedProjectPage() {
                 // Our `setGuestUser` only updates React state, not Supabase session.
 
                 // Solution:
-                // We CANNOT just redirect to `/project/[id]`.
+                // We CANNOT just redirect to `/projects/[id]`.
                 // The Shared Link Page MUST render the Project UI itself, passing the data we just fetched via the API route.
                 // OR duplicate the Project Page logic but pass explicit data.
 
@@ -63,7 +63,7 @@ export default function SharedProjectPage() {
                 // Actually, if we are "logged in as Guest", we mimic the UI.
                 // But data fetching is the issue.
 
-                // Option A: Use the existing /project/[id] route but hydrate the ProjectContext with the data we fetched here?
+                // Option A: Use the existing /projects/[id] route but hydrate the ProjectContext with the data we fetched here?
                 // If we cache it in `projectService` or `useProjects`?
 
                 // Option B: This page IS the project page.
@@ -115,7 +115,7 @@ export default function SharedProjectPage() {
         // Reuse ProjectPage Logic?
         // We can import `ProjectPage` content?
         // Or just redirect?
-        // Redirecting is cleaner URL `/project/[id]`.
+        // Redirecting is cleaner URL `/projects/[id]`.
         // But RLS blocks it.
 
         // Let's try to Sign In Anonymously? 
@@ -129,11 +129,11 @@ export default function SharedProjectPage() {
         // I will copy the logic for now (Speed) and clean up later.
         // Actually, extracting to `components/ProjectView.tsx` is better.
 
-        // FOR NOW: I will redirect to `/project/[id]?token=XYZ`.
+        // FOR NOW: I will redirect to `/projects/[id]?token=XYZ`.
         // And update `ProjectPage` to handle `token`.
         // If `token` is present, it uses `getProjectByShareToken` instead of `getProjectById`.
 
-        router.push(`/project/${fetchedProject.id}?share_token=${token}`);
+        router.push(`/projects/${fetchedProject.id}?share_token=${token}`);
     }
 
     return (
