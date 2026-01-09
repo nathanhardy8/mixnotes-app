@@ -1,0 +1,139 @@
+.browserContainer {
+    width: 100%;
+    margin-top: 0;
+    font-size: 0.9rem;
+    color: var(--foreground);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--foreground-muted);
+    gap: 1rem;
+    background: var(--surface);
+}
+
+.headerRow {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-hover);
+    /* Slight contrast for header */
+    font-weight: 600;
+    color: var(--foreground-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.listBody {
+    display: flex;
+    flex-direction: column;
+}
+
+.row,
+.rowLink {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    /* Comfy padding */
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    background: var(--surface);
+}
+
+.row:last-child {
+    border-bottom: none;
+}
+
+.row:hover {
+    background-color: var(--surface-hover);
+}
+
+/* Columns */
+.colName {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    color: var(--foreground);
+}
+
+.colOwner {
+    flex: 0.8;
+    color: var(--foreground-secondary);
+    font-size: 0.85rem;
+}
+
+.colDate {
+    flex: 0.8;
+    color: var(--foreground-muted);
+    font-size: 0.85rem;
+}
+
+.colSize {
+    flex: 0.6;
+    color: var(--foreground-muted);
+    font-size: 0.85rem;
+    font-family: var(--font-mono, monospace);
+    /* Tabular data usually benefits from mono if available, else standard */
+}
+
+.colActions {
+    flex: 0.2;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Icons */
+.iconFolder {
+    color: #f59e0b;
+    /* Amber-500 for Folders - Classic */
+    fill: currentColor;
+    fill-opacity: 0.2;
+}
+
+.iconFile {
+    color: var(--primary);
+    /* Brand blue for files */
+}
+
+.itemName {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+}
+
+.actionBtn {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--foreground-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.actionBtn:hover {
+    background-color: var(--surface-hover);
+    color: var(--foreground);
+}

@@ -1,0 +1,195 @@
+.playerContainer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    /* Gap handles the spacing between waveform and controls usually. */
+    box-shadow: var(--shadow-md);
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.playButton {
+    background: var(--surface);
+    color: var(--foreground);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+}
+
+.playButton:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.playButton:active {
+    transform: scale(0.95);
+}
+
+.timeDisplay {
+    font-family: var(--font-geist-mono), monospace;
+    color: var(--foreground-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.wave {
+    width: 100%;
+    height: 100%;
+}
+
+.waveformContainer {
+    position: relative;
+    width: 100%;
+    height: 128px;
+    background: transparent;
+    cursor: pointer;
+    overflow: visible;
+    margin-bottom: 24px;
+}
+
+/* Timeline Styles */
+.timelineContainer {
+    position: absolute;
+    bottom: -24px;
+    left: 0;
+    right: 0;
+    height: 20px;
+    pointer-events: none;
+}
+
+.timelineTick {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 6px;
+    background-color: var(--border);
+    transform: translateX(-50%);
+}
+
+.timelineLabel {
+    position: absolute;
+    top: 8px;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--foreground-muted);
+    opacity: 0.8;
+    font-family: var(--font-geist-mono), monospace;
+    white-space: nowrap;
+}
+
+/* Responsive Density */
+@media (max-width: 600px) {
+    .timelineItem:nth-child(even) .timelineLabel {
+        display: none;
+    }
+}
+
+/* Legend Styles Removed or kept minimal ... */
+.legend {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+/* Custom Marker Styles */
+.markerContainer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    transform: translateX(-50%);
+    /* Centered on the % point */
+    pointer-events: auto;
+    z-index: 10;
+    cursor: pointer;
+}
+
+/* Re-enable pointer events on the pin so it catches hover/click */
+.markerPin {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: absolute;
+    top: -6px;
+    /* Position at TOP axis */
+    left: 50%;
+    transform: translateX(-50%);
+    border: 2px solid white;
+    /* Contrast outline */
+    z-index: 10;
+}
+
+/* Optional: Vertical line extending down? */
+.markerPin::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 2px;
+    height: 134px;
+    /* Height to span waveform (128px + padding) */
+    background: inherit;
+    /* Use same color */
+    transform: translateX(-50%);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.markerTooltip {
+    position: absolute;
+    bottom: auto;
+    top: -36px;
+    /* Above the pin */
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+}
+
+.markerContainer:hover .markerTooltip,
+.markerPin:hover+.markerTooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-12px);
+}

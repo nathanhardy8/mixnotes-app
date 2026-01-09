@@ -1,0 +1,165 @@
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    font-family: var(--font-sans);
+    color: var(--foreground);
+}
+
+.header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: var(--muted-foreground);
+}
+
+.instructionsBox {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.instructionsTitle {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #60a5fa;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.instructionsText {
+    color: var(--foreground);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+}
+
+/* Upload Dropzone */
+.dropzone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface);
+    margin-bottom: 2rem;
+}
+
+.dropzoneActive {
+    border-color: var(--primary);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.uploadIcon {
+    width: 48px;
+    height: 48px;
+    color: var(--muted-foreground);
+    margin-bottom: 1rem;
+}
+
+.dropText {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.dropSubtext {
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+}
+
+/* Upload List */
+.sectionTitle {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.fileList {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.fileRow {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.fileRow:last-child {
+    border-bottom: none;
+}
+
+.fileIcon {
+    color: var(--primary);
+}
+
+.fileInfo {
+    flex: 1;
+}
+
+.fileName {
+    font-weight: 500;
+}
+
+.fileMeta {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btnIcon {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: var(--muted-foreground);
+    transition: all 0.2s;
+}
+
+.btnIcon:hover {
+    background: var(--border);
+    color: var(--foreground);
+}
+
+/* Progress */
+.progressRow {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.progressBarContainer {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.progressBarFill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.2s;
+}

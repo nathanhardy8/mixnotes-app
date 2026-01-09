@@ -1,0 +1,22 @@
+{
+    "explorer.autoReveal": false,
+    "testing.automaticallyOpenPeekView": "never",
+    "testing.openTesting": "neverOpen",
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.enablePreviewFromQuickOpen": false,
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "files.autoSave": "afterDelay",
+    "scm.alwaysShowProviders": true,
+    "task.quickOpen.detail": true,
+    "task.problemMatchers.neverPrompt": true,
+    "testing.automaticallyOpenTestResults": "neverOpen",
+    "debug.internalConsoleOptions": "neverOpen",
+    "debug.openDebug": "neverOpen",
+    "testing.followRunningTest": false,
+    "liveServer.settings.donotShowOnStart": true,
+    "browser.previewAction": "console",
+    "antigravity.preventScreenInterruption": true,
+    "antigravity.autoRedirect": false,
+    "antigravity.focusWindow": false,
+    "antigravity.openResultsInNewTab": false
+}

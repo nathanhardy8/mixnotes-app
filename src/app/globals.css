@@ -1,42 +1,261 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* System Fonts */
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* --- COLOR SYSTEM (Default: Light Mode) --- */
+
+  /* Backgrounds */
+  --background: #f9fafb;
+  /* Gray-50 */
+  --surface: #ffffff;
+  /* White */
+  --surface-hover: #f3f4f6;
+  /* Gray-100 */
+  --surface-active: #e5e7eb;
+  /* Gray-200 */
+
+  /* Text / Foreground */
+  --foreground: #111827;
+  /* Gray-900 */
+  --foreground-secondary: #4b5563;
+  /* Gray-600 */
+  --foreground-muted: #9ca3af;
+  /* Gray-400 */
+
+  /* Borders */
+  --border: #e2e8f0;
+  /* Gray-200-ish */
+  --border-focus: #9ca3af;
+  /* Gray-400 */
+
+  /* Primary Brand */
+  --primary: #3b82f6;
+  /* Blue-500 */
+  --primary-hover: #2563eb;
+  /* Blue-600 */
+  --primary-foreground: #ffffff;
+  --primary-glow: rgba(59, 130, 246, 0.4);
+
+  /* Destructive */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  /* Accents */
+  --accent: #eff6ff;
+  /* Blue-50 */
+  --accent-foreground: #1e3a8a;
+  /* Blue-900 */
+
+  /* --- SPACING & SHAPE --- */
+  --radius: 8px;
+
+  /* --- SHADOWS --- */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-overlay: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Light Mode Overrides (Applied via class) */
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-size: 15px;
+  /* Base size upgrade */
+  line-height: 1.5;
+  /* Good readability */
   -webkit-font-smoothing: antialiased;
+  /* Crisp text */
   -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+  cursor: pointer;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* Typography Hierarchy */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: -0.025em;
+  /* Tight modern headings */
+}
+
+h1 {
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+h4 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+p {
+  margin: 0 0 1rem 0;
+  color: var(--foreground-secondary);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* --- UTILITIES --- */
+
+.container {
+  width: 100%;
+  margin: 0;
+  padding: 0 1.5rem;
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  height: 40px;
+  /* Standard Height */
+  padding: 0 1.25rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  /* Medium */
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  height: 40px;
+  padding: 0 1.25rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-focus);
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  /* Maybe 12px for cards? */
+  padding: 1.5rem;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+
+
+/* Inputs (Global) */
+input,
+select,
+textarea {
+  display: block;
+  width: 100%;
+  height: 40px;
+  /* Matches buttons */
+  padding: 0.5rem 0.75rem;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--foreground);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+/* Fix for Checkboxes & Radios */
+input[type="checkbox"],
+input[type="radio"] {
+  display: inline-block;
+  width: auto;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  /* Standard small radius */
+  cursor: pointer;
+  accent-color: var(--primary);
+  margin-right: 0.5rem;
+  padding: 0;
+}
+
+input[type="radio"] {
+  border-radius: 50%;
+}
+
+textarea {
+  height: auto;
+  min-height: 80px;
 }

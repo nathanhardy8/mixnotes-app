@@ -1,0 +1,463 @@
+/* Landing Page Styles */
+.landingWrapper {
+    background-color: #0f172a;
+    /* Dark background */
+    color: #f8fafc;
+    font-family: var(--font-inter);
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.section {
+    padding: 5rem 0;
+    position: relative;
+}
+
+/* Typography */
+.headingXl {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(to right, #ffffff, #94a3b8);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.headingLg {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #ffffff;
+}
+
+.headingMd {
+    font-size: 1.5rem;
+    line-height: 1.3;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #ffffff;
+}
+
+.subheading {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: #ffffff;
+    /* Slate-300 */
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+}
+
+/* ... */
+
+.btnSecondary {
+    /* ... */
+    color: #f1f5f9;
+    /* Slate-100 */
+    /* ... */
+}
+
+/* ... */
+
+.pricePeriod {
+    color: #cbd5e1;
+    /* Slate-300 */
+    font-size: 1.125rem;
+}
+
+/* ... */
+
+.footerLink {
+    color: #cbd5e1;
+    /* Slate-300 */
+    transition: color 0.2s;
+}
+
+/* Buttons */
+.btnPrimary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #3b82f6;
+    color: white;
+    font-weight: 600;
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-size: 1.125rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);
+}
+
+.btnPrimary:hover {
+    background-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.6);
+}
+
+.btnSecondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: #e2e8f0;
+    font-weight: 500;
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: color 0.2s ease;
+    margin-left: 1rem;
+}
+
+.btnSecondary:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+/* Hero Section */
+.heroSection {
+    padding-top: 8rem;
+    padding-bottom: 6rem;
+    background: radial-gradient(circle at top center, #1e293b 0%, #0f172a 60%);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.heroVisual {
+    margin-top: 4rem;
+    width: 100%;
+    max-width: 1000px;
+    height: 400px;
+    /* Placeholder for visual */
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Features */
+.featuresGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.featureCard {
+    background: #1e293b;
+    /* Solid Slate-800 */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    border-radius: 12px;
+    transition: transform 0.2s ease;
+}
+
+.featureCard h3 {
+    color: #ffffff !important;
+}
+
+.featureCard p {
+    color: #cbd5e1;
+    /* Fallback */
+    font-weight: 400;
+    /* Regular weight */
+}
+
+.featureCard:hover {
+    transform: translateY(-5px);
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.iconWrapper {
+    width: 48px;
+    height: 48px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #60a5fa;
+    margin-bottom: 1.25rem;
+}
+
+/* How It Works */
+.howItWorksSection {
+    background-color: #020617;
+}
+
+.howItWorksSection .headingLg {
+    color: #ffffff;
+}
+
+.splitLayout {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+    margin-bottom: 5rem;
+}
+
+.splitLayout:nth-child(even) {
+    flex-direction: row-reverse;
+}
+
+.splitContent {
+    flex: 1;
+}
+
+.splitVisual {
+    flex: 1;
+    background: #1e293b;
+    border-radius: 12px;
+    height: 350px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    /* Center placeholder text */
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+}
+
+/* Pricing */
+.pricingSection {
+    text-align: center;
+    background: linear-gradient(to bottom, #0f172a, #1e293b);
+}
+
+.pricingCard {
+    background: #1e293b;
+    border: 1px solid #3b82f6;
+    border-radius: 16px;
+    padding: 3rem;
+    max-width: 400px;
+    margin: 3rem auto 0;
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+    position: relative;
+}
+
+.price {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 1.5rem 0 0.5rem;
+}
+
+.pricePeriod {
+    color: #94a3b8;
+    font-size: 1.125rem;
+}
+
+/* Final CTA */
+.ctaSection {
+    background-color: #3b82f6;
+    color: white;
+    text-align: center;
+    padding: 6rem 0;
+}
+
+.ctaSection .headingLg {
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.ctaBtn {
+    background-color: white;
+    color: #2563eb;
+    padding: 1rem 2.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1.25rem;
+    display: inline-block;
+    transition: transform 0.2s;
+}
+
+.ctaBtn:hover {
+    transform: scale(1.05);
+}
+
+/* Footer */
+.footer {
+    background-color: #020617;
+    padding: 3rem 0;
+    border-top: 1px solid #1e293b;
+    color: #64748b;
+    text-align: center;
+}
+
+.footerLinks {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.footerLink {
+    color: #94a3b8;
+    transition: color 0.2s;
+}
+
+.footerLink:hover {
+    color: white;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .headingXl {
+        font-size: 2.5rem;
+    }
+
+    .splitLayout {
+        flex-direction: column !important;
+        gap: 2rem;
+    }
+
+    .heroSection {
+        padding-top: 6rem;
+    }
+
+    .btnSecondary {
+        display: block;
+        margin: 1rem auto 0;
+    }
+}
+
+/* Hero Demo Player */
+.demoPlayerWrapper {
+    width: 100%;
+    max-width: 800px;
+    background: #1e293b;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.versionTabs {
+    display: flex;
+    background: #0f172a;
+    border-bottom: 1px solid #334155;
+    padding: 0 1rem;
+}
+
+.versionTab {
+    padding: 1rem 1.5rem;
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.versionTab:hover {
+    color: #cbd5e1;
+}
+
+.versionTab.activeTab {
+    color: white;
+    border-bottom-color: #3b82f6;
+}
+
+.badge {
+    background: #3b82f6;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.playerContainer {
+    padding: 1.5rem;
+    background: #1e293b;
+}
+
+.demoControls {
+    margin-top: 1.5rem;
+    border-top: 1px solid #334155;
+    padding-top: 1.5rem;
+}
+
+.commentForm {
+    display: flex;
+    gap: 10px;
+}
+
+.commentInput {
+    flex: 1;
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+.commentInput:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+.commentBtn {
+    background: #3b82f6;
+    color: white;
+    padding: 0 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.commentBtn:hover {
+    background: #2563eb;
+}
+
+.commentList {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.commentItem {
+    background: #0f172a;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #334155;
+}
+
+.commentHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.author {
+    color: #60a5fa;
+    font-weight: 600;
+}
+
+.timestamp {
+    color: #64748b;
+}
+
+.content {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+}

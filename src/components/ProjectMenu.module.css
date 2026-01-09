@@ -1,0 +1,104 @@
+.container {
+    position: relative;
+    display: inline-block;
+}
+
+.trigger {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.trigger:hover {
+    background: white;
+    color: var(--primary);
+    transform: scale(1.05);
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 160px;
+    z-index: 50;
+    /* Above project card */
+    padding: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.1s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 0.9rem;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.item:hover {
+    background: var(--surface-alt, #f7f9fc);
+}
+
+.item svg {
+    color: var(--text-light);
+}
+
+.item:hover svg {
+    color: var(--primary);
+}
+
+.danger {
+    color: #ef4444;
+}
+
+.danger svg {
+    color: #ef4444;
+}
+
+.danger:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.danger:hover svg {
+    color: #dc2626;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border, #eee);
+    margin: 4px 0;
+}

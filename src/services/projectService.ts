@@ -1,0 +1,668 @@
+import { createClient } from '@/utils/supabase/client';
+const supabase = createClient();
+import { Project, Comment, ProjectVersion } from '@/types';
+
+export const projectService = {
+    // PROJECTS
+    async getProjects(userId: string): Promise<Project[]> {
+        const { data, error } = await supabase
+            .from('projects')
+            .select('*, client:clients(name)')
+            .eq('engineer_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching projects:', error);
+            return [];
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return data.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            audioUrl: p.audio_url,
+            engineerId: p.engineer_id,
+            clientId: p.client_id,
+            clientIds: p.client_ids || [],
+            createdAt: p.created_at,
+            isLocked: p.is_locked,
+            price: p.price,
+            reviewEnabled: p.review_enabled,
+            reviewPublicId: p.review_public_id,
+            approvalStatus: p.approval_status,
+
+            archivedAt: p.archived_at,
+            allowDownload: p.allow_download,
+            clientName: p.client?.name, // Map resolved client name
+        }));
+    },
+
+    async getProjectsByClient(clientId: string): Promise<Project[]> {
+        const { data, error } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('client_id', clientId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching client projects:', error);
+            return [];
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return data.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            audioUrl: p.audio_url,
+            engineerId: p.engineer_id,
+            clientId: p.client_id,
+            clientIds: p.client_ids || [],
+            createdAt: p.created_at,
+            isLocked: p.is_locked,
+            price: p.price,
+            archivedAt: p.archived_at,
+        }));
+    },
+
+    async getProjectById(id: string): Promise<Project | null> {
+        const { data, error } = await supabase
+            .from('projects')
+            .select(`
+                *,
+                versions:project_versions(*),
+                client:clients(name)
+            `)
+            .eq('id', id)
+            .single();
+
+        if (error || !data) {
+            return null;
+        }
+
+        const p = data;
+        const versions = (p.versions || []).map((v: any) => ({
+            id: v.id,
+            projectId: v.project_id,
+            versionNumber: v.version_number,
+            audioUrl: v.audio_url,
+            createdAt: v.created_at,
+            createdByUserId: v.created_by_user_id,
+            isApproved: v.is_approved,
+            originalFilename: v.original_filename
+        })).sort((a: any, b: any) => b.versionNumber - a.versionNumber);
+
+        // If revisions are enabled, determine the effective audio URL
+        // Typically the latest version, unless one is approved or specific view logic
+        // For now, simpler: base audioUrl is the *latest* or the project's main pointer
+        // But with versions, we should probably prefer the latest version's audio
+        const latestVersionAudio = versions.length > 0 ? versions[0].audioUrl : p.audio_url;
+
+        return {
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            audioUrl: latestVersionAudio, // Prefer versioned URL
+            engineerId: p.engineer_id,
+            clientId: p.client_id,
+            clientIds: p.client_ids || [],
+            createdAt: p.created_at,
+            isLocked: p.is_locked,
+            price: p.price,
+
+            archivedAt: p.archived_at,
+            allowDownload: p.allow_download,
+            shareToken: p.share_token,
+
+            // Review fields
+            reviewPublicId: p.review_public_id,
+            reviewEnabled: p.review_enabled,
+            clientName: (p.client as any)?.name || p.client_name,
+            clientEmail: p.client_email,
+            clientPhone: p.client_phone,
+            revisionLimit: p.revision_limit,
+            revisionsUsed: p.revisions_used,
+            approvalStatus: p.approval_status,
+            approvedVersionId: p.approved_version_id,
+            approvedAt: p.approved_at,
+            approvedBy: p.approved_by,
+            remindersEnabled: p.reminders_enabled,
+            versions: versions
+        };
+    },
+
+    async createProject(project: Partial<Project>): Promise<Project | null> {
+        try {
+            const res = await fetch('/api/projects', {
+                method: 'POST',
+                body: JSON.stringify(project),
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                console.error('Create Project Error:', err);
+                return null;
+            }
+
+            const data = await res.json();
+
+            return {
+                ...project,
+                id: data.id,
+                createdAt: data.created_at,
+                // Ensure field mapping is consistent
+                audioUrl: data.audio_url,
+                clientId: data.client_id,
+                engineerId: data.engineer_id,
+                isLocked: data.is_locked,
+                price: data.price
+            } as Project;
+        } catch (e) {
+            console.error('Create Project Network Error:', e);
+            return null;
+        }
+    },
+
+    async updateProject(id: string, updates: Partial<Project>): Promise<boolean> {
+        const dbUpdates: any = {};
+        if (updates.title !== undefined) dbUpdates.title = updates.title;
+        if (updates.description !== undefined) dbUpdates.description = updates.description;
+        if (updates.isLocked !== undefined) dbUpdates.is_locked = updates.isLocked;
+        if (updates.clientIds !== undefined) dbUpdates.client_ids = updates.clientIds;
+        if (updates.clientId !== undefined) dbUpdates.client_id = updates.clientId;
+        if (updates.allowDownload !== undefined) dbUpdates.allow_download = updates.allowDownload;
+
+        // Review specific updates
+        if (updates.reviewEnabled !== undefined) dbUpdates.review_enabled = updates.reviewEnabled;
+        if (updates.reviewPublicId !== undefined) dbUpdates.review_public_id = updates.reviewPublicId;
+        if (updates.clientName !== undefined) dbUpdates.client_name = updates.clientName;
+        if (updates.clientEmail !== undefined) dbUpdates.client_email = updates.clientEmail;
+        if (updates.revisionLimit !== undefined) dbUpdates.revision_limit = updates.revisionLimit;
+        if (updates.remindersEnabled !== undefined) dbUpdates.reminders_enabled = updates.remindersEnabled;
+
+        const { error } = await supabase
+            .from('projects')
+            .update(dbUpdates)
+            .eq('id', id);
+
+        return !error;
+    },
+
+    // VERSIONS
+    async createVersion(projectId: string, audioUrl: string, userId: string): Promise<ProjectVersion | null> {
+        // 1. Get current max version
+        const { data: versions } = await supabase
+            .from('project_versions')
+            .select('version_number')
+            .eq('project_id', projectId)
+            .order('version_number', { ascending: false })
+            .limit(1);
+
+        const nextVersion = (versions && versions.length > 0) ? versions[0].version_number + 1 : 1;
+
+        // 2. Insert new version
+        const { data, error } = await supabase
+            .from('project_versions')
+            .insert([{
+                project_id: projectId,
+                version_number: nextVersion,
+                audio_url: audioUrl,
+                created_by_user_id: userId
+            }])
+            .select()
+            .single();
+
+        if (error) return null;
+
+        // 3. Update project master audio_url to point to latest?
+        await supabase.from('projects')
+            .update({ audio_url: audioUrl, approval_status: 'PENDING' }) // Reset approval if adding new version
+            .eq('id', projectId);
+
+        return {
+            id: data.id,
+            projectId: data.project_id,
+            versionNumber: data.version_number,
+            audioUrl: data.audio_url,
+            createdAt: data.created_at,
+            createdByUserId: data.created_by_user_id,
+            isApproved: data.is_approved
+        };
+    },
+
+    async approveProjectVersion(projectId: string, versionId: string, shareToken?: string): Promise<{ success: boolean; error?: string }> {
+        try {
+            const res = await fetch(`/api/projects/${projectId}/approve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ versionId, shareToken })
+            });
+
+            const data = await res.json();
+            return { success: res.ok && data.success, error: data.error };
+        } catch (e) {
+            console.error('Approve Version Error:', e);
+            return { success: false, error: 'Network error' };
+        }
+    },
+
+    // COMMENTS
+    async getComments(projectId: string, versionId?: string): Promise<Comment[]> {
+        let query = supabase
+            .from('comments')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('timestamp', { ascending: true });
+
+        // Optional filtering by version, but often we want all comments history
+        // If versionId is supplied, we could filter strictly or handle logic elsewhere
+        if (versionId) {
+            query = query.eq('project_version_id', versionId);
+        }
+
+        const { data, error } = await query;
+
+        if (error) return [];
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return data.map((c: any) => ({
+            id: c.id,
+            projectId: c.project_id,
+            projectVersionId: c.project_version_id,
+            authorId: c.author_id,
+            content: c.content,
+            timestamp: c.timestamp,
+            createdAt: c.created_at,
+            isCompleted: c.is_completed || false,
+            isPostApproval: c.is_post_approval || false,
+            authorType: c.author_type,
+            authorName: c.author_name,
+            authorUserId: c.author_user_id,
+            archivedAt: c.archived_at,
+            parentId: c.parent_id,
+            updatedAt: c.updated_at,
+        }));
+    },
+
+    async addComment(comment: Omit<Comment, 'id' | 'createdAt'>): Promise<Comment | null> {
+        const { data, error } = await supabase
+            .from('comments')
+            .insert([{
+                project_id: comment.projectId,
+                project_version_id: comment.projectVersionId,
+                author_id: comment.authorId,
+                content: comment.content,
+                timestamp: comment.timestamp,
+                is_post_approval: comment.isPostApproval,
+                author_type: comment.authorType,
+                author_name: comment.authorName,
+                author_user_id: comment.authorUserId,
+                author_client_identifier: comment.authorClientIdentifier,
+                parent_id: comment.parentId
+            }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Supabase Error in addComment:', JSON.stringify(error, null, 2));
+            throw error;
+        }
+
+        return {
+            id: data.id,
+            projectId: data.project_id,
+            projectVersionId: data.project_version_id,
+            authorId: data.author_id,
+            content: data.content,
+            timestamp: data.timestamp,
+            createdAt: data.created_at,
+            isCompleted: false,
+            isPostApproval: data.is_post_approval,
+            authorType: data.author_type,
+            authorName: data.author_name,
+            authorUserId: data.author_user_id,
+            parentId: data.parent_id
+        };
+    },
+
+    async toggleCommentComplete(commentId: string, isCompleted: boolean): Promise<boolean> {
+        const updates: any = { is_completed: isCompleted };
+        if (isCompleted) {
+            updates.archived_at = new Date().toISOString();
+        } else {
+            updates.archived_at = null;
+        }
+
+        const { data, error } = await supabase
+            .from('comments')
+            .update(updates)
+            .eq('id', commentId)
+            .select();
+
+        if (error) {
+            console.error('Error toggling comment:', error);
+            return false;
+        }
+
+        return data && data.length > 0;
+    },
+
+    async updateComment(commentId: string, content: string): Promise<Comment | null> {
+        const { data, error } = await supabase
+            .from('comments')
+            .update({
+                content,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', commentId)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error updating comment:', error);
+            return null;
+        }
+
+        // Map back to camelCase
+        const c = data;
+        return {
+            id: c.id,
+            projectId: c.project_id,
+            projectVersionId: c.project_version_id,
+            authorId: c.author_id,
+            content: c.content,
+            timestamp: c.timestamp,
+            createdAt: c.created_at,
+            isCompleted: c.is_completed || false,
+            isPostApproval: c.is_post_approval || false,
+            authorType: c.author_type,
+            authorName: c.author_name,
+            authorUserId: c.author_user_id,
+            archivedAt: c.archived_at,
+            parentId: c.parent_id,
+            updatedAt: c.updated_at,
+        };
+    },
+
+    async deleteComment(commentId: string): Promise<boolean> {
+        const { error } = await supabase
+            .from('comments')
+            .delete()
+            .eq('id', commentId);
+
+        if (error) {
+            console.error('Error deleting comment:', error);
+            return false;
+        }
+        return true;
+    },
+
+    // UPLOAD
+    async uploadFile(file: File, bucket: string = 'projects'): Promise<string | null> {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error } = await supabase.storage
+            .from(bucket)
+            .upload(filePath, file);
+
+        if (error) {
+            console.error('Upload error:', error);
+            return null;
+        }
+
+        const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+        return data.publicUrl;
+    },
+
+    async uploadFileDirect(file: File, bucket: string, path: string): Promise<string | null> {
+        const { error } = await supabase.storage
+            .from(bucket)
+            .upload(path, file);
+
+        if (error) {
+            console.error('Upload error:', error);
+            return null;
+        }
+
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+        return data.publicUrl;
+    },
+
+    async deleteProject(id: string): Promise<boolean> {
+        // 1. Get project to find audioUrl
+        const { data: project } = await supabase
+            .from('projects')
+            .select('audio_url')
+            .eq('id', id)
+            .single();
+
+        if (project?.audio_url) {
+            // Extract filename from URL (simple assumption: last part of path)
+            const urlParts = project.audio_url.split('/');
+            const fileName = urlParts[urlParts.length - 1];
+
+            // Delete from Storage
+            await supabase.storage.from('projects').remove([fileName]);
+        }
+
+        // 2. Delete from DB
+        const { error } = await supabase
+            .from('projects')
+            .delete()
+            .eq('id', id);
+
+        return !error;
+    },
+
+    // REVIEW LINKS
+    async generateReviewLink(projectId: string): Promise<{ success: boolean; token?: string; publicId?: string; isNew?: boolean; linkExists?: boolean; expiresAt?: string }> {
+        try {
+            const res = await fetch(`/api/projects/${projectId}/review-link`, {
+                method: 'POST'
+            });
+            const data = await res.json();
+            return data;
+        } catch (e) {
+            console.error('Error generating review link:', e);
+            return { success: false };
+        }
+    },
+
+    async regenerateReviewLink(projectId: string): Promise<{ success: boolean; token?: string; publicId?: string }> {
+        try {
+            const res = await fetch(`/api/projects/${projectId}/review-link/regenerate`, {
+                method: 'POST'
+            });
+            const data = await res.json();
+            return data;
+        } catch (e) {
+            console.error('Error regenerating review link:', e);
+            return { success: false };
+        }
+    },
+
+    async updateProjectAPI(id: string, updates: { title?: string; clientId?: string; archivedAt?: string }): Promise<Project | null> {
+        try {
+            const res = await fetch(`/api/projects/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(updates),
+            });
+            if (!res.ok) return null;
+
+            const data = await res.json();
+            // Map raw DB response to Project type if needed, or if key names match mostly...
+            // The service usually maps snake_case to camelCase.
+            // Let's reuse the mapping logic or manual map basic fields.
+            // Safest to rely on `getProjectById` re-fetch? No, we want speed.
+            // Let's do a basic map here.
+            return {
+                id: data.id,
+                title: data.title,
+                description: data.description,
+                audioUrl: data.audio_url,
+                engineerId: data.engineer_id,
+                clientId: data.client_id,
+                clientIds: data.client_ids || [],
+                createdAt: data.created_at,
+                isLocked: data.is_locked,
+                price: data.price,
+                reviewEnabled: data.review_enabled,
+                reviewPublicId: data.review_public_id,
+                approvalStatus: data.approval_status,
+                archivedAt: data.archived_at,
+                allowDownload: data.allow_download,
+                shareToken: data.share_token
+            } as Project;
+        } catch (e) {
+            console.error('API Update Error:', e);
+            return null;
+        }
+    },
+
+    async getProjectByShareToken(token: string): Promise<Project | null> {
+        try {
+            const res = await fetch('/api/projects/share/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+
+            if (!res.ok) return null;
+            const data = await res.json();
+
+            // Map Data (similar to getProjectById but from raw API response)
+            // The API returns snake_case from DB
+            const versions = (data.versions || []).map((v: any) => ({
+                id: v.id,
+                projectId: v.project_id,
+                versionNumber: v.version_number,
+                audioUrl: v.audio_url,
+                createdAt: v.created_at,
+                createdByUserId: v.created_by_user_id,
+                isApproved: v.is_approved
+            })).sort((a: any, b: any) => b.versionNumber - a.versionNumber);
+
+            const latestVersionAudio = versions.length > 0 ? versions[0].audioUrl : data.audio_url;
+
+            return {
+                id: data.id,
+                title: data.title,
+                description: data.description,
+                audioUrl: latestVersionAudio,
+                engineerId: data.engineer_id,
+                clientId: data.client_id,
+                clientIds: data.client_ids || [],
+                createdAt: data.created_at,
+                isLocked: data.is_locked,
+                price: data.price,
+                archivedAt: data.archived_at,
+                allowDownload: data.allow_download,
+                shareToken: data.share_token,
+                reviewEnabled: data.review_enabled,
+                reviewPublicId: data.review_public_id,
+                clientName: data.client?.name,
+                revisionLimit: data.revision_limit,
+                revisionsUsed: data.revisions_used,
+                approvalStatus: data.approval_status,
+                versions: versions
+            };
+        } catch (e) {
+            console.error('Get Shared Project Error:', e);
+            return null;
+        }
+    },
+
+    async resetShareToken(projectId: string): Promise<string | null> {
+        try {
+            const res = await fetch(`/api/projects/${projectId}/share/reset`, {
+                method: 'POST'
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            return data.token;
+        } catch (e) {
+            console.error('Reset Token Error:', e);
+            return null;
+        }
+    },
+
+    async deleteProjectAPI(id: string): Promise<boolean> {
+        try {
+            const res = await fetch(`/api/projects/${id}`, {
+                method: 'DELETE',
+            });
+            return res.ok;
+        } catch (e) {
+            console.error('API Delete Error:', e);
+            return false;
+        }
+    },
+
+    async getProjectsWithComments(userId: string): Promise<{
+        projectId: string;
+        title: string;
+        clientId: string | null;
+        clientName: string;
+        totalComments: number;
+        unresolvedComments: number;
+        latestCommentAt: string;
+    }[]> {
+        // 1. Get all projects for user
+        const projects = await this.getProjects(userId);
+        if (!projects || projects.length === 0) return [];
+
+        const projectIds = projects.map(p => p.id);
+
+        // 2. Get all comments for these projects
+        // We only need basic metadata to count and find latest
+        const { data: comments, error } = await supabase
+            .from('comments')
+            .select('project_id, created_at, is_completed')
+            .in('project_id', projectIds)
+            .order('created_at', { ascending: false });
+
+        if (error || !comments) {
+            console.error("Error fetching inbox comments", error);
+            return [];
+        }
+
+        // 3. Aggregate
+        const statsMap = new Map<string, { total: number; unresolved: number; latest: string }>();
+
+        comments.forEach(c => {
+            const current = statsMap.get(c.project_id) || { total: 0, unresolved: 0, latest: '' };
+
+            current.total++;
+            if (!c.is_completed) current.unresolved++;
+
+            // Comments are ordered desc, so the first one we see is the latest
+            if (!current.latest) current.latest = c.created_at;
+
+            statsMap.set(c.project_id, current);
+        });
+
+        // 4. Merge back to projects and Sort
+        const inbox = projects
+            .map(p => {
+                const stats = statsMap.get(p.id);
+                if (!stats) return null; // Filter out projects with NO comments
+
+                return {
+                    projectId: p.id,
+                    title: p.title,
+                    clientId: p.clientId || null,
+                    clientName: p.clientName || 'No Client',
+                    totalComments: stats.total,
+                    unresolvedComments: stats.unresolved,
+                    latestCommentAt: stats.latest
+                };
+            })
+            .filter((p): p is NonNullable<typeof p> => p !== null)
+            .sort((a, b) => new Date(b.latestCommentAt).getTime() - new Date(a.latestCommentAt).getTime());
+
+        return inbox;
+    }
+};

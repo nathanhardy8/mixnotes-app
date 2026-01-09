@@ -1,0 +1,78 @@
+.container {
+    display: flex;
+    align-items: flex-end;
+    /* Align tabs to bottom */
+    gap: 0.5rem;
+    /* Gap between tabs */
+    margin-bottom: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    background: transparent;
+    padding-bottom: 0;
+    /* No padding at bottom */
+}
+
+.container::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    position: relative;
+    padding: 0.75rem 1.25rem;
+    /* Typical tab padding */
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--foreground-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px 8px 0 0;
+    /* Rounded top */
+    margin-bottom: 0px;
+    top: 1px;
+    /* Push down slightly to align? No, marginBottom on container handles overlap. 
+               Actually, if marginBottom is -1px, tabs overlap the border. */
+}
+
+.tab:hover {
+    color: var(--foreground);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab.active {
+    background: var(--surface);
+    /* Match Player background */
+    color: var(--foreground);
+    /* Active Text Color */
+    font-weight: 600;
+
+    /* Connection Illusion */
+    border: 1px solid var(--border);
+    border-bottom: 1px solid var(--surface);
+    /* Hide the bottom border by matching bg */
+    z-index: 20;
+    /* Sit above player */
+}
+
+/* Remove old underline */
+.tab.active::after {
+    display: none;
+}
+
+.badge {
+    background-color: var(--primary);
+    /* Use variable */
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

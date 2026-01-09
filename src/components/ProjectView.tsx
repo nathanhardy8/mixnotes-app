@@ -1,0 +1,536 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { Lock, Download, ArrowLeft, ChevronDown, ChevronUp, Share2, Copy, RefreshCw, Check, Upload } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import AudioPlayer from '@/components/AudioPlayer';
+import CommentSidebar from '@/components/CommentSidebar';
+import VersionSelector from '@/components/VersionSelector';
+import ClientSharingPanel from '@/components/ReviewSettingsPanel';
+import Toast from '@/components/Toast';
+import styles from './ProjectView.module.css';
+import { Comment, Project, User } from '@/types';
+import { useAudioShortcuts } from '@/hooks/useAudioShortcuts';
+
+export interface ProjectViewProps {
+    project: Project;
+    comments: Comment[];
+    currentUser?: User | null;
+    role: 'engineer' | 'client';
+
+    // Player State
+    activeVersionId: string | null;
+    setActiveVersionId: (id: string) => void;
+    isPlaying: boolean;
+    setIsPlaying: (val: boolean) => void;
+    currentTime: number;
+    setCurrentTime: (val: number) => void;
+    seekTarget: { time: number; timestamp: number } | null;
+    setSeekTarget: (val: { time: number; timestamp: number } | null) => void;
+
+    // Handlers
+    onAddComment: (content: string, timestamp: number, authorName?: string) => Promise<void>;
+    onToggleComplete: (commentId: string, isCompleted: boolean) => void;
+    onToggleLock?: () => void;
+    onDownload: () => void;
+    onApprove: () => void;
+    onUploadVersion?: (file: File) => Promise<void>;
+    onUpdateProject?: (updates: Partial<Project>) => void; // For settings updates
+
+    // UI State
+    approving?: boolean;
+    uploading?: boolean;
+    showArchived: boolean;
+    setShowArchived: (val: boolean) => void;
+
+    // View Control
+    setViewMode?: (mode: 'engineer' | 'client') => void;
+    viewMode?: string;
+
+    // Modals (Controlled by parent or local? ProjectPage has them local. Let's keep them handled by props if needed, or encapsulate here?)
+    // ProjectPage manages modal visibility. Let's pass visibility props since the handlers (like onApprove) are passed in.
+    showConfModal: boolean;
+    setShowConfModal: (val: boolean) => void;
+    showSuccessModal: boolean;
+    setShowSuccessModal: (val: boolean) => void;
+
+    // Toast (Unified)
+    toast?: { message: string, type: 'success' | 'error' } | null;
+    setToast?: (val: { message: string, type: 'success' | 'error' } | null) => void;
+}
+
+export default function ProjectView({
+    project,
+    comments,
+    currentUser,
+    role,
+    activeVersionId,
+    setActiveVersionId,
+    isPlaying,
+    setIsPlaying,
+    currentTime,
+    setCurrentTime,
+    seekTarget,
+    setSeekTarget,
+    onAddComment,
+    onToggleComplete,
+    onToggleLock,
+    onDownload,
+    onApprove,
+    onUploadVersion,
+    onUpdateProject,
+    approving = false,
+    uploading = false,
+    showArchived,
+    setShowArchived,
+    setViewMode,
+    viewMode,
+    showConfModal,
+    setShowConfModal,
+    showSuccessModal,
+    setShowSuccessModal,
+    toast,
+    setToast
+}: ProjectViewProps) {
+
+    const [isControlsExpanded, setIsControlsExpanded] = useState(true);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [mounted, setMounted] = useState(false);
+    const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null);
+
+    useEffect(() => setMounted(true), []);
+
+
+    // (lines 102-171 unchanged - skipping for brevity if I could, but I need to be careful with replace)
+    // Actually, I can target just the return block's usages if I can match unique context.
+    // Or I can replace the start of the function to add state, then replace the return block.
+    // Let's do creating state first.
+
+
+    // Derived
+    const isClientView = role === 'client';
+    console.log('ProjectView Render:', {
+        role,
+        isClientView,
+        allowDownload: project.allowDownload,
+        locked: project.isLocked
+    });
+
+    const activeVersion = project?.versions?.find(v => v.id === activeVersionId);
+    const currentAudioUrl = activeVersion ? activeVersion.audioUrl : (project?.audioUrl || '');
+    const versionLabel = (project.versions && project.versions.length > 0 && activeVersion) ? `Version ${activeVersion.versionNumber}` : 'Version 1';
+
+    // Filter comments
+    const versionedComments = comments.filter(c => {
+        if (!activeVersionId) return true;
+        return c.projectVersionId === activeVersionId || !c.projectVersionId;
+    });
+
+    const visibleComments = showArchived
+        ? versionedComments
+        : versionedComments.filter(c => !c.isCompleted);
+
+    // Audio Shortcuts (Component level)
+    useAudioShortcuts(isPlaying, setIsPlaying);
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && onUploadVersion) {
+            await onUploadVersion(file);
+        }
+    };
+
+    return (
+        <div className={styles.container}>
+            {/* Exit Client View (Engineer Only) */}
+            {viewMode === 'client' && setViewMode && (
+                <div
+                    style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+                        background: '#1e3a8a', color: 'white', padding: '0.5rem',
+                        textAlign: 'center', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer'
+                    }}
+                    onClick={() => setViewMode('engineer')}
+                >
+                    Viewing as Client. Click here to Exit.
+                </div>
+            )}
+
+            {/* Back Link (Engineer Only) */}
+            {role === 'engineer' && (
+                <Link
+                    href={project.clientId ? `/dashboard?client=${project.clientId}` : '/dashboard'}
+                    style={{ color: '#888', fontSize: '0.9rem', marginBottom: '1rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                    <ArrowLeft size={16} /> {project.clientName ? `Back to ${project.clientName}` : 'Back to Clients'}
+                </Link>
+            )}
+
+            <main className={styles.main} style={viewMode === 'client' ? { marginTop: '2rem' } : undefined}>
+                <div className={styles.leftColumn}>
+                    <header className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className={styles.headerInfo}>
+                            <h1 className={styles.projectTitle}>{project.title}</h1>
+                            {activeVersion && (
+                                <span style={{ backgroundColor: '#e0f2fe', color: '#0284c7', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600, marginLeft: '12px' }}>
+                                    v{activeVersion.versionNumber}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Approval (Client Only) */}
+                        {isClientView && (
+                            <div>
+                                {project.approvalStatus === 'APPROVED' ? (
+                                    <div style={{
+                                        display: 'flex', alignItems: 'center', gap: '6px',
+                                        color: '#10b981', fontWeight: 600, fontSize: '0.95rem',
+                                        backgroundColor: '#ecfdf5', padding: '0.5rem 1rem', borderRadius: 'full'
+                                    }}>
+                                        <Check size={18} /> Final Mix Approved
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => setShowConfModal(true)}
+                                        disabled={approving}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '8px',
+                                            backgroundColor: '#3b82f6', color: 'white',
+                                            border: 'none', padding: '0.6rem 1.2rem', borderRadius: '8px',
+                                            fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
+                                            opacity: approving ? 0.7 : 1, transition: 'background 0.2s',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                        }}
+                                        onMouseOver={e => !approving && (e.currentTarget.style.backgroundColor = '#2563eb')}
+                                        onMouseOut={e => !approving && (e.currentTarget.style.backgroundColor = '#3b82f6')}
+                                    >
+                                        {approving ? 'Approving...' : <><Check size={18} /> Approve Final Mix</>}
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </header>
+
+                    {/* Version Selector (New Tabbed UI) */}
+                    {project.versions && project.versions.length > 0 && (
+                        <div style={{ marginTop: '0', marginBottom: '-1px', position: 'relative', zIndex: 10, paddingLeft: '1.5rem' }}>
+                            <VersionSelector
+                                versions={project.versions}
+                                activeVersionId={activeVersionId || activeVersion?.id || project.versions[0].id}
+                                onSelect={(vid) => {
+                                    // Seamless Switching Logic
+                                    const timeToPreserve = currentTime;
+                                    const wasPlaying = isPlaying;
+
+                                    setActiveVersionId(vid);
+
+                                    // Force seek to preserve time
+                                    // Use slight delay to ensure render cycle? No, immediate state update is best.
+                                    setSeekTarget({ time: timeToPreserve, timestamp: Date.now() });
+
+                                    // Play state is preserved in 'isPlaying' prop, 
+                                    // AudioPlayer will re-sync via its useEffect[isPlaying]
+                                    if (wasPlaying) setIsPlaying(true);
+                                }}
+                                latestVersionId={project.versions.sort((a, b) => b.versionNumber - a.versionNumber)[0].id}
+                            />
+                        </div>
+                    )}
+
+                    <AudioPlayer
+                        versions={project.versions || []}
+                        activeVersionId={activeVersionId || activeVersion?.id || project.versions?.[0]?.id || ''}
+                        onTimeUpdate={setCurrentTime}
+                        seekTo={seekTarget}
+                        isPlaying={isPlaying}
+                        onPlayPause={setIsPlaying}
+                        comments={visibleComments}
+                        onMarkerClick={(id) => {
+                            const c = comments.find(x => x.id === id);
+                            if (c) setSeekTarget({ time: c.timestamp, timestamp: Date.now() });
+                        }}
+                    />
+
+
+
+                    <p className={styles.projectMeta}>
+                        {versionLabel} • Uploaded by Engineer • {new Date(project.createdAt).toLocaleDateString()}
+                    </p>
+
+                    {/* Client Download (Unlocked) */}
+                    {isClientView && project.allowDownload && (
+                        <div style={{ marginTop: '1.5rem', display: 'flex' }}>
+                            <button
+                                onClick={onDownload}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '8px',
+                                    padding: '0.6rem 1.2rem', borderRadius: '8px',
+                                    border: '1px solid var(--border)', backgroundColor: 'var(--surface-alt)',
+                                    color: 'var(--foreground)', fontSize: '0.9rem', fontWeight: 600,
+                                    cursor: 'pointer', transition: 'all 0.15s ease', boxShadow: 'var(--shadow-sm)'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'var(--surface-hover)';
+                                    e.currentTarget.style.borderColor = 'var(--border-focus)';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'var(--surface-alt)';
+                                    e.currentTarget.style.borderColor = 'var(--border)';
+                                }}
+                            >
+                                <Download size={18} style={{ opacity: 0.8 }} /> Download
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Locked Message */}
+                    {isClientView && (!project.allowDownload) && (
+                        <div style={{ marginTop: '1.5rem', color: '#888', fontStyle: 'italic', fontSize: '0.9rem' }}>
+                            <Lock size={14} style={{ display: 'inline', marginRight: '4px' }} /> Download disabled by engineer.
+                        </div>
+                    )}
+                </div>
+
+                <div className={styles.rightColumn}>
+                    <CommentSidebar
+                        comments={versionedComments}
+                        currentTime={currentTime}
+                        onCommentClick={(ts) => setSeekTarget({ time: ts, timestamp: Date.now() })}
+                        onAddComment={onAddComment}
+                        onInputFocus={() => setIsPlaying(false)}
+                        onToggleComplete={onToggleComplete}
+                        isGuest={isClientView || !currentUser}
+                        showArchived={showArchived}
+                        onToggleArchived={() => setShowArchived(!showArchived)}
+                    />
+
+                    {/* Engineer Controls */}
+                    {role === 'engineer' && (
+                        <div className={styles.engineerSection}>
+                            <div
+                                className={styles.engineerHeader}
+                                onClick={() => setIsControlsExpanded(!isControlsExpanded)}
+                            >
+                                <span>Engineer Controls</span>
+                                {isControlsExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </div>
+
+                            {isControlsExpanded && (
+                                <div className={styles.engineerContent}>
+                                    {/* Upload */}
+                                    {onUploadVersion && (
+                                        <>
+                                            <button
+                                                className={styles.primaryActionBtn}
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={uploading}
+                                            >
+                                                {uploading ? 'Uploading...' : 'Upload New Version'}
+                                                <Upload size={20} />
+                                            </button>
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                onChange={handleFileSelect}
+                                                style={{ display: 'none' }}
+                                                accept="audio/*"
+                                            />
+                                        </>
+                                    )}
+
+                                    {/* Settings */}
+                                    <ClientSharingPanel
+                                        project={project}
+                                        onUpdate={(updates) => onUpdateProject && onUpdateProject(updates)}
+                                    />
+
+                                    {/* Download Config */}
+                                    <div className={styles.sidebarCard}>
+                                        <div className={styles.sidebarCardTitle}>Download Access</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                            <div style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
+                                                Client can listen & download
+                                            </div>
+                                            <label className={styles.toggleSwitch}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={project.allowDownload || false}
+                                                    onChange={(e) => onUpdateProject && onUpdateProject({ allowDownload: e.target.checked })}
+                                                />
+                                                <span className={styles.slider}></span>
+                                            </label>
+                                        </div>
+                                        {((role === 'engineer') || (project.allowDownload)) && (
+                                            <button onClick={onDownload} className={styles.downloadBtn} style={{ height: '40px', fontSize: '0.9rem' }}>
+                                                <Download size={16} style={{ marginRight: '8px' }} /> Download File
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Revisions */}
+                                    <div className={styles.sidebarCard}>
+                                        <div className={styles.sidebarCardTitle}>Revisions</div>
+                                        <RevisionsControlCompact
+                                            limit={project.revisionLimit}
+                                            used={project.revisionsUsed || 0}
+                                            onUpdate={(newLimit) => onUpdateProject && onUpdateProject({ revisionLimit: newLimit })}
+                                        />
+                                    </div>
+
+                                    {/* View Mode */}
+                                    {setViewMode && (
+                                        <button className={styles.viewClientBtn} onClick={() => setViewMode('client')}>
+                                            View as Client
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </main>
+
+            {/* Toast */}
+            {toast && setToast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
+            {/* Confirmation Modal */}
+            {showConfModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }} onClick={() => setShowConfModal(false)}>
+                    <div style={{
+                        backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
+                        maxWidth: '450px', width: '90%', textAlign: 'center', transform: 'translateY(-20px)',
+                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#111' }}>Approve Final Mix?</h2>
+                        <p style={{ color: '#666', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                            This will mark this version as the final approved mix and notify your engineer.
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => setShowConfModal(false)}
+                                style={{
+                                    padding: '0.6rem 1.2rem', border: '1px solid #ddd', borderRadius: '8px',
+                                    background: 'white', fontWeight: 600, cursor: 'pointer', color: '#555'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={onApprove}
+                                disabled={approving}
+                                style={{
+                                    padding: '0.6rem 1.2rem', border: 'none', borderRadius: '8px',
+                                    background: '#3b82f6', color: 'white', fontWeight: 600, cursor: 'pointer',
+                                    opacity: approving ? 0.7 : 1
+                                }}
+                            >
+                                {approving ? 'Approving...' : 'Approve'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
+                        maxWidth: '450px', width: '90%', textAlign: 'center',
+                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                    }}>
+                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#111' }}>Congratulations!</h2>
+                        <p style={{ color: '#666', marginBottom: '2rem', lineHeight: 1.5 }}>
+                            We've notified your engineer that you approved the final mix!
+                        </p>
+                        <button
+                            onClick={() => setShowSuccessModal(false)}
+                            style={{
+                                padding: '0.75rem 2rem', border: 'none', borderRadius: '8px',
+                                background: '#3b82f6', color: 'white', fontWeight: 600, cursor: 'pointer',
+                                width: '100%'
+                            }}
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function RevisionsControlCompact({ limit, used, onUpdate }: { limit?: number | null, used: number, onUpdate: (val: number | null) => void }) {
+    const [isEditing, setIsEditing] = useState(false);
+    const [isUnlimited, setIsUnlimited] = useState(limit === null || limit === undefined);
+    const [newLimit, setNewLimit] = useState(limit || 3);
+
+    useEffect(() => {
+        setIsUnlimited(limit === null || limit === undefined);
+        setNewLimit(limit || 3);
+    }, [limit, isEditing]);
+
+    const handleSave = () => {
+        const val = isUnlimited ? null : newLimit;
+        if (!isUnlimited && val !== null && val < used) {
+            alert(`Cannot set limit lower than revisions used (${used}).`);
+            return;
+        }
+        onUpdate(val);
+        setIsEditing(false);
+    };
+
+    return (
+        <div className={styles.revisionsRow}>
+            {!isEditing ? (
+                <>
+                    <span>
+                        Revisions Included: <strong>{limit === null || limit === undefined ? 'Unlimited' : limit}</strong> · Used: <strong>{used}</strong>
+                    </span>
+                    <button onClick={() => setIsEditing(true)} className={styles.editLink}>Edit</button>
+                </>
+            ) : (
+                <div style={{ width: '100%', padding: '0.5rem', background: 'var(--surface-hover)', borderRadius: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', gap: '8px' }}>
+                        <label style={{ fontSize: '0.85rem' }}>Limit:</label>
+                        <input
+                            type="number"
+                            value={newLimit}
+                            disabled={isUnlimited}
+                            onChange={(e) => setNewLimit(Math.max(used, parseInt(e.target.value) || 0))}
+                            style={{ width: '60px', padding: '4px', borderRadius: '4px', border: '1px solid var(--border)' }}
+                        />
+                        <input
+                            type="checkbox"
+                            checked={isUnlimited}
+                            onChange={(e) => setIsUnlimited(e.target.checked)}
+                            id="rev-compact-check"
+                            style={{ marginLeft: '6px' }}
+                        />
+                        <label htmlFor="rev-compact-check" style={{ fontSize: '0.8rem', marginLeft: '2px' }}>Unlimited</label>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                        <button onClick={() => setIsEditing(false)} style={{ fontSize: '0.8rem', padding: '2px 6px', cursor: 'pointer', background: 'none', border: '1px solid var(--border)', borderRadius: '4px' }}>Cancel</button>
+                        <button onClick={handleSave} style={{ fontSize: '0.8rem', padding: '2px 6px', cursor: 'pointer', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px' }}>Save</button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

@@ -1,0 +1,115 @@
+/* src/app/review/[public_id]/styles.module.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.leftColumn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    overflow-y: auto;
+    align-items: center;
+}
+
+.rightColumn {
+    width: 400px;
+    border-left: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+
+.header {
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.projectTitle {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.meta {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.approvalBanner {
+    background-color: #ecfdf5;
+    border: 1px solid #10b981;
+    color: #065f46;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+}
+
+.actionButton {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.actionButton:hover {
+    background-color: #1d4ed8;
+}
+
+.actionButton:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.lockedMessage {
+    text-align: center;
+    margin-top: 4rem;
+    color: #64748b;
+}
+
+.revisionBadge {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.limitWarning {
+    color: #b45309;
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+.playerWrapper {
+    width: 100%;
+    max-width: 900px;
+}

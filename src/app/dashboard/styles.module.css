@@ -1,0 +1,95 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.5rem;
+    overflow: hidden;
+    background-color: var(--background);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground);
+    letter-spacing: -0.02em;
+}
+
+.crumbBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    font-size: inherit;
+    font-weight: inherit;
+    color: var(--foreground-secondary);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+}
+
+.crumbBtn:hover {
+    background-color: var(--surface-hover);
+    color: var(--foreground);
+}
+
+.crumbActive {
+    color: var(--foreground);
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btnSecondary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0 1rem;
+    height: 40px;
+    border-radius: var(--radius);
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--foreground);
+    font-size: 14px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.btnSecondary:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--border-focus);
+}
+
+.contentArea {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+}
+
+/* User Profile in Header if needed, though we moved to Sidebar mostly */
+.userProfile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
