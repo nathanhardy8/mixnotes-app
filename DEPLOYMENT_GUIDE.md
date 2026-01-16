@@ -42,5 +42,6 @@ Ensure your Vercel project has the strictly correct environment variables. If yo
 
 *   `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase Project URL.
 *   `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase Anon Key.
+*   `NEXT_PUBLIC_SITE_URL`: **REQUIRED** - The public URL of your app in Production (e.g., `https://mixnotes.app`). Ensure this is set in Vercel for Production environment.
 
 (These are standard, but just a reminder).

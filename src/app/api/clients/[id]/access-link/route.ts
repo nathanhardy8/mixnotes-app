@@ -2,6 +2,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { getBaseUrl } from '@/utils/urlHelpers';
 
 // POST /api/clients/[id]/access-link
 // Generate or retrieve a valid access link for the client.
@@ -59,8 +60,7 @@ export async function POST(
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     // Public URL
-    // Use existing origin or config
-    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const origin = getBaseUrl(request);
     // Use correct route: /review/client/[clientId]?t=...
     const url = `${origin}/review/client/${clientId}/uploads?t=${token}`;
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { getBaseUrl } from '@/utils/urlHelpers';
 
 // GET: Check status
 export async function GET(
@@ -53,7 +54,7 @@ export async function GET(
     const payload = `${clientId}:${version}`;
     const token = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
-    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const origin = getBaseUrl(request);
     const publicId = clientData.review_public_id;
     const url = `${origin}/review/folder/${publicId}?t=${token}`;
 
@@ -127,7 +128,7 @@ export async function POST(
         const payload = `${clientId}:${version}`;
         const token = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
-        const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const origin = getBaseUrl(request);
         const publicId = client.review_public_id;
         const url = `${origin}/review/folder/${publicId}?t=${token}`;
 
