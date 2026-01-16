@@ -253,7 +253,7 @@ export default function ProjectView({
                                         // But ProjectView props onReorderVersions says (newOrder: any[]) -> void. 
                                         // Let's check ProjectPage. It takes ProjectVersion[].
                                         // So we need to reconstruct the array of objects in new order.
-                                        const reorderedVersions = newIds.map(id => project.versions.find(v => v.id === id)).filter(Boolean);
+                                        const reorderedVersions = newIds.map(id => (project.versions || []).find(v => v.id === id)).filter(Boolean);
                                         onReorderVersions(reorderedVersions);
                                     }
                                 }}
