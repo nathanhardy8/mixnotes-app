@@ -66,14 +66,22 @@ export default function AudioPlayer({
                 });
 
                 audio.addEventListener('error', (e) => {
-                    console.error("Audio Load Error:", v.id, e);
+                    console.error("Audio Load Error:", v.id, audio.src, e);
                 });
 
                 audioRefs.current[v.id] = audio;
             }
         });
 
-        // Cleanup old versions? (Optional optimization)
+        // Cleanup all audio on unmount
+        return () => {
+            Object.values(audioRefs.current).forEach(audio => {
+                audio.pause();
+                audio.src = '';
+                audio.load(); // Reset
+            });
+            audioRefs.current = {};
+        };
     }, [versions]);
 
     // -- WaveSurfer Visual --

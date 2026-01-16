@@ -168,7 +168,13 @@ export async function POST(request: Request) {
 
     // 4. Return Project Data tailored for Client
     // Sort versions
-    const versions = (project.versions || []).sort((a: any, b: any) => b.version_number - a.version_number);
+    // Sort versions
+    const versions = (project.versions || []).sort((a: any, b: any) => {
+        const orderA = a.display_order || 0;
+        const orderB = b.display_order || 0;
+        if (orderA !== orderB) return orderA - orderB;
+        return b.version_number - a.version_number;
+    });
     // Logic: If approved, default audio is approved version. Else latest.
     const latestVersion = versions[0];
     const approvedVersion = versions.find((v: any) => v.id === project.approved_version_id);
@@ -191,7 +197,9 @@ export async function POST(request: Request) {
             id: v.id,
             versionNumber: v.version_number,
             audioUrl: v.audio_url,
-            createdAt: v.created_at
+            createdAt: v.created_at,
+            displayName: v.display_name, // Fix: Include display name
+            displayOrder: v.display_order || 0 // Fix: Include display order
         }))
     };
 

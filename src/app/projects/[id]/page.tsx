@@ -12,12 +12,13 @@ import styles from './styles.module.css';
 import { useUser } from '@/context/UserContext';
 import { useProjects } from '@/context/ProjectContext';
 import { projectService } from '@/services/projectService';
-import { Comment, Project, User } from '@/types';
+import { Comment, Project, User, ProjectVersion } from '@/types';
 import { useAudioShortcuts } from '@/hooks/useAudioShortcuts';
 
 import ClientSharingPanel from '@/components/ReviewSettingsPanel';
 
 // ... (imports)
+import { createClient } from '@/utils/supabase/client';
 import ProjectView from '@/components/ProjectView';
 
 export default function ProjectPage() {
@@ -44,51 +45,73 @@ export default function ProjectPage() {
 
     // Version State
     const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+    const supabase = createClient();
 
-    // --- FETCH DATA ---
-    useEffect(() => {
+    const loadProject = async () => {
         if (!id) return;
 
         if (shareToken) {
             // Guest Access via Token
             setLoadingProject(true);
-            projectService.getProjectByShareToken(shareToken).then(p => {
-                if (p) {
-                    setProject(p);
-                    // Explicitly set Guest User if not logged in
-                    if (!currentUser) {
-                        const guestUser: User = {
-                            id: 'guest-' + shareToken,
-                            email: '',
-                            name: 'Guest Client',
-                            role: 'client',
-                            defaultRevisionLimit: null
-                        };
-                        setGuestUser(guestUser);
-                    }
+            const p = await projectService.getProjectByShareToken(shareToken);
+            if (p) {
+                setProject(p);
+                if (!currentUser) {
+                    setGuestUser({
+                        id: 'guest-' + shareToken,
+                        email: '',
+                        name: 'Guest Client',
+                        role: 'client',
+                        defaultRevisionLimit: null
+                    });
                 }
-                setLoadingProject(false);
-            });
+            }
+            setLoadingProject(false);
             return;
         }
 
         // Regular Auth Access
-        const p = getProject(id);
-        // Only use cached project if it has versions loaded, otherwise fetch full details
-        if (p && p.versions && p.versions.length > 0) {
-            setProject(p);
-            setLoadingProject(false);
-        } else {
-            setLoadingProject(true);
-            projectService.getProjectById(id).then(fullP => {
-                setProject(fullP);
-                setLoadingProject(false);
-            });
-        }
+        // We always fetch fresh to ensure we have latest structure (versions sorted)
+        // But we can check cache first for instant load if needed.
+        // For simplicity and correctness with RLS/Sorting, let's fetch.
+        // Regular Auth Access
+        if (!project) setLoadingProject(true);
+        const fullP = await projectService.getProjectById(id);
+        setProject(fullP);
+        setLoadingProject(false);
+    };
 
-        // Load Comments
+    // --- FETCH DATA ---
+    useEffect(() => {
+        loadProject();
+    }, [id, shareToken, currentUser?.id]);
+
+    // Realtime subscription for project and versions
+    useEffect(() => {
+        if (!id) return;
+
+        const channel = supabase.channel(`project-${id}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'projects', filter: `id=eq.${id}` },
+                () => loadProject()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'project_versions', filter: `project_id=eq.${id}` },
+                () => loadProject()
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [id]);
+
+    // Reload comments when Version Changes
+    useEffect(() => {
         loadComments();
-    }, [id, getProject]); // Removed shareToken from dependency to avoid loop if it changes
+    }, [selectedVersionId]);
 
     // Initialize/Sync Selected Version
     useEffect(() => {
@@ -102,9 +125,12 @@ export default function ProjectPage() {
 
     const loadComments = async () => {
         if (!id) return;
-        const data = await projectService.getComments(id);
+        // Fetch comments specifically for the ACTIVE VERSION
+        // This ensures markers/list only show what's relevant to this version.
+        const data = await projectService.getComments(id, selectedVersionId || undefined);
         setComments(data || []);
     };
+
 
 
     // --- SYNC LOGIC ---
@@ -262,6 +288,63 @@ export default function ProjectPage() {
         }
     };
 
+    // --- VERSION MANAGEMENT HANDLERS ---
+    const handleVersionReorder = async (newOrder: ProjectVersion[]) => {
+        if (!project) return;
+
+        // Optimistic update
+        setProject(prev => prev ? { ...prev, versions: newOrder } : null);
+
+        const ids = newOrder.map(v => v.id);
+        const success = await projectService.reorderVersions(project.id, ids);
+        if (!success) {
+            console.error("Failed to reorder versions");
+            alert("Failed to save new order. Please check console or permissions.");
+            // Ideally revert state here by fetching project again
+        }
+    };
+
+    const handleVersionDelete = async (versionId: string) => {
+        if (!project) return;
+
+        const success = await projectService.deleteVersion(versionId);
+        if (success) {
+            setProject(prev => {
+                if (!prev || !prev.versions) return prev;
+                const newVersions = prev.versions.filter(v => v.id !== versionId);
+
+                // If deleted active version, switch to another
+                if (selectedVersionId === versionId) {
+                    const fallback = newVersions.length > 0 ? newVersions[0].id : null;
+                    setSelectedVersionId(fallback);
+                }
+
+                return { ...prev, versions: newVersions };
+            });
+        } else {
+            alert("Failed to delete version");
+        }
+    };
+
+    const handleVersionRename = async (versionId: string, name: string) => {
+        if (!project) return;
+
+        // Optimistic
+        setProject(prev => {
+            if (!prev || !prev.versions) return prev;
+            return {
+                ...prev,
+                versions: prev.versions.map(v => v.id === versionId ? { ...v, displayName: name } : v)
+            };
+        });
+
+        const success = await projectService.renameVersion(project.id, versionId, name);
+        if (!success) {
+            console.error("Failed to rename version");
+            // Revert or show error
+        }
+    };
+
     if (loadingProject) {
         return <div className={styles.container}>Loading project...</div>;
     }
@@ -294,6 +377,9 @@ export default function ProjectPage() {
             onApprove={handleApprove}
             onUploadVersion={handleUploadVersion}
             onUpdateProject={handleUpdateProject}
+            onReorderVersions={handleVersionReorder}
+            onDeleteVersion={handleVersionDelete}
+            onRenameVersion={handleVersionRename}
 
             approving={approving}
             uploading={uploading}

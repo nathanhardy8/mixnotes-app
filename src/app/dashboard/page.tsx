@@ -334,24 +334,41 @@ export default function Dashboard() {
     };
 
     // Move
-    const [moveTargetProject, setMoveTargetProject] = useState<Project | null>(null);
+    const [moveTargetProjects, setMoveTargetProjects] = useState<Project[]>([]);
     const [isMoveOpen, setIsMoveOpen] = useState(false);
 
     const onMoveProjectStart = (project: Project) => {
-        setMoveTargetProject(project);
+        setMoveTargetProjects([project]);
+        setIsMoveOpen(true);
+    };
+
+    const onBulkMoveStart = (projects: Project[]) => {
+        setMoveTargetProjects(projects);
         setIsMoveOpen(true);
     };
 
     const onMoveProjectCommit = async (targetClientId: string | null) => {
-        if (moveTargetProject) {
-            const success = await projectService.updateProjectAPI(moveTargetProject.id, { clientId: targetClientId || undefined });
-            if (success) {
-                // Update local context
-                await updateProject({ ...moveTargetProject, clientId: targetClientId || undefined });
-            }
-        }
         setIsMoveOpen(false);
-        setMoveTargetProject(null);
+        if (moveTargetProjects.length > 0) {
+            // Optimistic update all
+            for (const p of moveTargetProjects) {
+                await updateProject({ ...p, clientId: targetClientId || undefined });
+            }
+            // Loop API calls (parallel is fine)
+            await Promise.all(moveTargetProjects.map(p =>
+                projectService.updateProjectAPI(p.id, { clientId: targetClientId || undefined })
+            ));
+        }
+        setMoveTargetProjects([]);
+    };
+
+    const handleBulkDelete = async (selectedProjects: Project[]) => {
+        if (!confirm(`Permanently delete ${selectedProjects.length} projects?`)) return;
+
+        // Sequential to ensure stability or parallel? Parallel is fine for independent deletes.
+        for (const p of selectedProjects) {
+            await deleteProject(p.id);
+        }
     };
 
     return (
@@ -419,6 +436,8 @@ export default function Dashboard() {
                     onMoveProject={onMoveProjectStart}
                     onShareClient={(currentUser?.role === 'admin' || currentUser?.role === 'engineer') ? handleShareClient : undefined}
                     currentFolderId={folderId}
+                    onBulkMove={onBulkMoveStart}
+                    onBulkDelete={handleBulkDelete}
                 />
             </div>
 

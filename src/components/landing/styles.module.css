@@ -27,10 +27,8 @@
     font-weight: 800;
     letter-spacing: -0.02em;
     margin-bottom: 1.5rem;
-    background: linear-gradient(to right, #ffffff, #94a3b8);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+
+    color: #ffffff;
 }
 
 .headingLg {
@@ -346,41 +344,24 @@
     border: 1px solid #334155;
     overflow: hidden;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+    /* Local Dark Mode Overrides for Components */
+    --foreground: #f8fafc;
+    --foreground-muted: #94a3b8;
+    --surface: #1e293b;
+    --border: #334155;
+    --primary: #3b82f6;
 }
 
-.versionTabs {
-    display: flex;
+/* Version Selector Wrapper */
+.versionSelectorWrapper {
     background: #0f172a;
     border-bottom: 1px solid #334155;
     padding: 0 1rem;
-}
-
-.versionTab {
-    padding: 1rem 1.5rem;
-    color: #94a3b8;
-    font-weight: 500;
-    font-size: 0.9rem;
-    border-bottom: 2px solid transparent;
+    min-height: 52px;
+    /* Stabilize height */
     display: flex;
     align-items: center;
-    gap: 8px;
-}
-
-.versionTab:hover {
-    color: #cbd5e1;
-}
-
-.versionTab.activeTab {
-    color: white;
-    border-bottom-color: #3b82f6;
-}
-
-.badge {
-    background: #3b82f6;
-    color: white;
-    font-size: 0.7rem;
-    padding: 2px 6px;
-    border-radius: 4px;
 }
 
 .playerContainer {

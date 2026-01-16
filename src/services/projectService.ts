@@ -71,7 +71,7 @@ export const projectService = {
             .from('projects')
             .select(`
                 *,
-                versions:project_versions(*),
+                versions:project_versions!project_versions_project_id_fkey(*),
                 client:clients(name)
             `)
             .eq('id', id)
@@ -90,8 +90,17 @@ export const projectService = {
             createdAt: v.created_at,
             createdByUserId: v.created_by_user_id,
             isApproved: v.is_approved,
-            originalFilename: v.original_filename
-        })).sort((a: any, b: any) => b.versionNumber - a.versionNumber);
+            originalFilename: v.original_filename,
+            displayOrder: v.display_order || 0,
+            displayName: v.display_name
+        })).sort((a: ProjectVersion, b: ProjectVersion) => {
+            // Primary: display_order ASC
+            const orderA = a.displayOrder || 0;
+            const orderB = b.displayOrder || 0;
+            if (orderA !== orderB) return orderA - orderB;
+            // Secondary: versionNumber DESC (fallback)
+            return b.versionNumber - a.versionNumber;
+        });
 
         // If revisions are enabled, determine the effective audio URL
         // Typically the latest version, unless one is approved or specific view logic
@@ -199,7 +208,33 @@ export const projectService = {
             .order('version_number', { ascending: false })
             .limit(1);
 
-        const nextVersion = (versions && versions.length > 0) ? versions[0].version_number + 1 : 1;
+        let nextVersion = 1;
+
+        // Check for legacy backfill needed
+        if (!versions || versions.length === 0) {
+            // No versions found. Check if project has existing audio to backfill as V1.
+            const { data: project } = await supabase
+                .from('projects')
+                .select('audio_url, created_at')
+                .eq('id', projectId)
+                .single();
+
+            if (project?.audio_url) {
+                // Backfill V1
+                console.log('[createVersion] Backfilling V1 for legacy project');
+                await supabase.from('project_versions').insert([{
+                    project_id: projectId,
+                    version_number: 1,
+                    audio_url: project.audio_url,
+                    created_by_user_id: userId, // ideally original author, but falling back to uploader or we could leave it null/system
+                    display_name: 'Original Mix',
+                    created_at: project.created_at // preserve timestamp
+                }]);
+                nextVersion = 2; // Next is 2
+            }
+        } else {
+            nextVersion = versions[0].version_number + 1;
+        }
 
         // 2. Insert new version
         const { data, error } = await supabase
@@ -247,6 +282,114 @@ export const projectService = {
         }
     },
 
+    async deleteVersion(versionId: string): Promise<boolean> {
+        console.log(`[deleteVersion] Deleting version ${versionId}...`);
+
+        // 1. Manual Cascade: Delete Comments first
+        const { error: commentsError } = await supabase
+            .from('comments')
+            .delete()
+            .eq('project_version_id', versionId);
+
+        if (commentsError) {
+            console.error("[deleteVersion] Failed to delete comments:", commentsError);
+        }
+
+        // 2. Clear approved_version_id if it references this version
+        // We use two attempts to catch potential schema mismatches (approvedVersionId vs approved_version_id) just in case,
+        // though snake_case is standard for Supabase.
+        const { error: clearApprovedError } = await supabase
+            .from('projects')
+            .update({ approved_version_id: null })
+            .eq('approved_version_id', versionId);
+
+        if (clearApprovedError) {
+            console.error("[deleteVersion] Failed to clear approved_version_id:", clearApprovedError);
+        }
+
+        // 3. Get version to find audioUrl and clean up storage
+        const { data: version, error: fetchError } = await supabase
+            .from('project_versions')
+            .select('audio_url')
+            .eq('id', versionId)
+            .single();
+
+        if (fetchError) {
+            console.error("[deleteVersion] Failed to fetch version:", fetchError);
+            // We continue to try to delete the record anyway
+        }
+
+        if (version?.audio_url) {
+            try {
+                const parts = version.audio_url.split('/projects/');
+                if (parts.length > 1) {
+                    const filePath = parts[1];
+                    await supabase.storage.from('projects').remove([filePath]);
+                }
+            } catch (e) {
+                console.error("Failed to delete file from storage", e);
+            }
+        }
+
+        // 4. Delete Record
+        const { error } = await supabase
+            .from('project_versions')
+            .delete()
+            .eq('id', versionId);
+
+        if (error) {
+            console.error("[deleteVersion] DB Delete Error:", error);
+            return false;
+        }
+
+        return true;
+    },
+
+    async renameVersion(projectId: string, versionId: string, name: string): Promise<boolean> {
+        const { error } = await supabase
+            .from('project_versions')
+            .update({ display_name: name })
+            .eq('id', versionId);
+
+        if (error) {
+            console.error("[renameVersion] Error:", error);
+            return false;
+        }
+
+        // Touch project to trigger realtime update for clients
+        await supabase.from('projects')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', projectId);
+
+        return true;
+    },
+
+    async reorderVersions(projectId: string, orderedVersionIds: string[]): Promise<boolean> {
+        console.log(`[reorderVersions] Reordering ${orderedVersionIds.length} versions for project ${projectId}`);
+
+        const updates = orderedVersionIds.map((id, index) =>
+            supabase.from('project_versions')
+                .update({ display_order: index })
+                .eq('id', id)
+                .select()
+        );
+
+        const results = await Promise.all(updates);
+        const errors = results.filter(r => r.error);
+
+        if (errors.length > 0) {
+            console.error("[reorderVersions] Errors:", errors.map(e => e.error));
+            return false;
+        }
+
+        // Touch project to trigger realtime update for clients
+        await supabase.from('projects')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', projectId);
+
+        return true;
+    },
+
     // COMMENTS
     async getComments(projectId: string, versionId?: string): Promise<Comment[]> {
         let query = supabase
@@ -255,8 +398,6 @@ export const projectService = {
             .eq('project_id', projectId)
             .order('timestamp', { ascending: true });
 
-        // Optional filtering by version, but often we want all comments history
-        // If versionId is supplied, we could filter strictly or handle logic elsewhere
         if (versionId) {
             query = query.eq('project_version_id', versionId);
         }
@@ -327,6 +468,7 @@ export const projectService = {
     },
 
     async toggleCommentComplete(commentId: string, isCompleted: boolean): Promise<boolean> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updates: any = { is_completed: isCompleted };
         if (isCompleted) {
             updates.archived_at = new Date().toISOString();
@@ -364,7 +506,6 @@ export const projectService = {
             return null;
         }
 
-        // Map back to camelCase
         const c = data;
         return {
             id: c.id,
@@ -535,6 +676,7 @@ export const projectService = {
 
             // Map Data (similar to getProjectById but from raw API response)
             // The API returns snake_case from DB
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const versions = (data.versions || []).map((v: any) => ({
                 id: v.id,
                 projectId: v.project_id,
@@ -542,8 +684,15 @@ export const projectService = {
                 audioUrl: v.audio_url,
                 createdAt: v.created_at,
                 createdByUserId: v.created_by_user_id,
-                isApproved: v.is_approved
-            })).sort((a: any, b: any) => b.versionNumber - a.versionNumber);
+                isApproved: v.is_approved,
+                displayOrder: v.display_order || 0,
+                displayName: v.display_name
+            })).sort((a: any, b: any) => {
+                const orderA = a.displayOrder || 0;
+                const orderB = b.displayOrder || 0;
+                if (orderA !== orderB) return orderA - orderB;
+                return b.versionNumber - a.versionNumber;
+            });
 
             const latestVersionAudio = versions.length > 0 ? versions[0].audioUrl : data.audio_url;
 
@@ -644,25 +793,25 @@ export const projectService = {
             statsMap.set(c.project_id, current);
         });
 
-        // 4. Merge back to projects and Sort
-        const inbox = projects
+        // 4. Map back to projects
+        return projects
             .map(p => {
                 const stats = statsMap.get(p.id);
-                if (!stats) return null; // Filter out projects with NO comments
+                if (!stats) return null; // Only show projects with comments? Or all? User likely wants Inbox = Active
+                // "Inbox" usually implies items with activity.
+                // If we want all, remove this check.
 
                 return {
                     projectId: p.id,
                     title: p.title,
                     clientId: p.clientId || null,
-                    clientName: p.clientName || 'No Client',
+                    clientName: p.clientName || 'Unknown Client',
                     totalComments: stats.total,
                     unresolvedComments: stats.unresolved,
                     latestCommentAt: stats.latest
                 };
             })
-            .filter((p): p is NonNullable<typeof p> => p !== null)
+            .filter((p): p is NonNullable<typeof p> => p !== null && p.totalComments > 0) // Filter out no-comment projects
             .sort((a, b) => new Date(b.latestCommentAt).getTime() - new Date(a.latestCommentAt).getTime());
-
-        return inbox;
     }
 };

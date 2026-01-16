@@ -28,6 +28,10 @@ interface FileBrowserProps {
     onClientFileUpload?: (file: File) => void;
     onDeleteClientUpload?: (upload: ClientUpload) => void;
     onRenameClientUpload?: (upload: ClientUpload, newName: string) => void;
+
+    // Bulk Actions
+    onBulkMove?: (projects: Project[]) => void;
+    onBulkDelete?: (projects: Project[]) => void;
 }
 
 export default function FileBrowser({
@@ -45,7 +49,9 @@ export default function FileBrowser({
     clientUploads = [],
     onClientFileUpload,
     onDeleteClientUpload,
-    onRenameClientUpload
+    onRenameClientUpload,
+    onBulkMove,
+    onBulkDelete
 }: FileBrowserProps) {
     const [activeTab, setActiveTab] = useState<'mixes' | 'uploads'>('mixes');
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -169,6 +175,38 @@ export default function FileBrowser({
 
     const hasItems = clients.length > 0 || projects.length > 0 || clientUploads.length > 0;
 
+    // --- Bulk Edit State ---
+    const [isBulkEdit, setIsBulkEdit] = useState(false);
+    const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
+
+    // --- Bulk Actions ---
+    const handleBulkToggle = () => {
+        setIsBulkEdit(prev => !prev);
+        setSelectedProjectIds(new Set()); // Reset selection
+    };
+
+    const handleSelectProject = (projectId: string) => {
+        setSelectedProjectIds(prev => {
+            const next = new Set(prev);
+            if (next.has(projectId)) {
+                next.delete(projectId);
+            } else {
+                next.add(projectId);
+            }
+            return next;
+        });
+    };
+
+    const handleSelectAll = () => {
+        if (selectedProjectIds.size === processedProjects.length) {
+            setSelectedProjectIds(new Set());
+        } else {
+            setSelectedProjectIds(new Set(processedProjects.map(p => p.id)));
+        }
+    };
+
+    const hasSelected = selectedProjectIds.size > 0;
+
     // Determine if we show tabs (only in folder)
     const showTabs = !!currentFolderId;
 
@@ -200,47 +238,126 @@ export default function FileBrowser({
 
     return (
         <div className={styles.browserContainer}>
-            {/* Control Bar (Search + Sort) */}
+            {/* Control Bar (Search + Sort + Bulk) */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', gap: '1rem', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
-                    <Search className={styles.icon} size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--foreground-secondary)' }} />
-                    <input
-                        type="text"
-                        placeholder="Search by name..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '8px 12px 8px 36px',
-                            borderRadius: '6px',
-                            border: '1px solid var(--border)',
-                            background: 'var(--surface)',
-                            color: 'var(--foreground)',
-                            fontSize: '0.9rem'
-                        }}
-                    />
-                </div>
+                {isBulkEdit ? (
+                    // Bulk Edit Active Header
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+                                {selectedProjectIds.size} Selected
+                            </span>
+                            <div style={{ height: '24px', width: '1px', background: 'var(--border)' }}></div>
+                            <button
+                                style={{ color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500 }}
+                                onClick={handleSelectAll}
+                            >
+                                {selectedProjectIds.size === processedProjects.length ? 'Deselect All' : 'Select All'}
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                                className={styles.btnSecondary}
+                                disabled={!hasSelected}
+                                onClick={() => {
+                                    if (onBulkMove && hasSelected) {
+                                        const selected = processedProjects.filter(p => selectedProjectIds.has(p.id));
+                                        onBulkMove(selected);
+                                        // Exit bulk mode after action? Ideally yes, or wait. 
+                                        // User logic will handle modal, so we just trigger.
+                                    }
+                                }}
+                                style={{ opacity: hasSelected ? 1 : 0.5, cursor: hasSelected ? 'pointer' : 'not-allowed' }}
+                            >
+                                Move
+                            </button>
+                            <button
+                                className={styles.btnSecondary}
+                                disabled={!hasSelected}
+                                onClick={() => {
+                                    if (onBulkDelete && hasSelected) {
+                                        const selected = processedProjects.filter(p => selectedProjectIds.has(p.id));
+                                        onBulkDelete(selected);
+                                    }
+                                }}
+                                style={{ opacity: hasSelected ? 1 : 0.5, cursor: hasSelected ? 'pointer' : 'not-allowed', color: 'var(--error)' }}
+                            >
+                                Delete
+                            </button>
+                            <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 8px' }}></div>
+                            <button
+                                onClick={handleBulkToggle}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--foreground-secondary)' }}
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    // Standard Header
+                    <>
+                        <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
+                            <Search className={styles.icon} size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--foreground-secondary)' }} />
+                            <input
+                                type="text"
+                                placeholder="Search by name..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px 12px 8px 36px',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--border)',
+                                    background: 'var(--surface)',
+                                    color: 'var(--foreground)',
+                                    fontSize: '0.9rem'
+                                }}
+                            />
+                        </div>
 
-                <button
-                    onClick={handleSortToggle}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border)',
-                        background: 'var(--surface)',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        color: 'var(--foreground)',
-                        fontWeight: 500
-                    }}
-                >
-                    {sortMode === 'newest' && <span>Newest First</span>}
-                    {sortMode === 'nameAsc' && <><span>Name</span> <ArrowUp size={14} /></>}
-                    {sortMode === 'nameDesc' && <><span>Name</span> <ArrowDown size={14} /></>}
-                </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                                onClick={handleSortToggle}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--border)',
+                                    background: 'var(--surface)',
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem',
+                                    color: 'var(--foreground)',
+                                    fontWeight: 500
+                                }}
+                            >
+                                {sortMode === 'newest' && <span>Newest First</span>}
+                                {sortMode === 'nameAsc' && <><span>Name</span> <ArrowUp size={14} /></>}
+                                {sortMode === 'nameDesc' && <><span>Name</span> <ArrowDown size={14} /></>}
+                            </button>
+
+                            {/* Only show Bulk Edit if we have projects */}
+                            {projects.length > 0 && (
+                                <button
+                                    onClick={handleBulkToggle}
+                                    style={{
+                                        padding: '8px 12px',
+                                        borderRadius: '6px',
+                                        border: '1px solid var(--border)',
+                                        background: 'var(--surface)',
+                                        cursor: 'pointer',
+                                        fontSize: '0.9rem',
+                                        color: 'var(--foreground)',
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    Bulk Edit
+                                </button>
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
 
 
@@ -310,12 +427,13 @@ export default function FileBrowser({
                     <>
 
 
-                        {/* 1. Clients (Folders) */}
+                        {/* 1. Clients (Folders) - NO Selection for Folders as per scope */}
                         {processedClients.map(client => (
                             <div
                                 key={`client-${client.id}`}
                                 className={styles.row}
-                                onClick={() => onClientClick?.(client)}
+                                onClick={() => !isBulkEdit && onClientClick?.(client)}
+                                style={{ opacity: isBulkEdit ? 0.5 : 1, pointerEvents: isBulkEdit ? 'none' : 'auto' }}
                             >
                                 <div className={styles.colName}>
                                     <Folder className={styles.iconFolder} size={20} />
@@ -339,61 +457,95 @@ export default function FileBrowser({
                                 <div className={styles.colDate}>{formatDate(client.createdAt)}</div>
                                 <div className={styles.colSize}>-</div>
                                 <div className={styles.colActions}>
-                                    <ActionMenu
-                                        type="client"
-                                        onRename={() => handleStartRename(client.id, client.name)}
-                                        onShare={() => onShareClient?.(client)}
-                                        onDelete={() => onDeleteClient?.(client)}
-                                    />
+                                    {!isBulkEdit && (
+                                        <ActionMenu
+                                            type="client"
+                                            onRename={() => handleStartRename(client.id, client.name)}
+                                            onShare={() => onShareClient?.(client)}
+                                            onDelete={() => onDeleteClient?.(client)}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         ))}
 
                         {/* 2. Projects (Files) */}
-                        {processedProjects.map(project => (
-                            <div
-                                key={`proj-${project.id}`}
-                                className={styles.rowWrapper} // Wrapper to separate Link from Actions
-                            >
-                                <Link
-                                    href={`/projects/${project.id}`}
-                                    className={styles.rowLink}
+                        {processedProjects.map(project => {
+                            const isSelected = selectedProjectIds.has(project.id);
+                            return (
+                                <div
+                                    key={`proj-${project.id}`}
+                                    className={styles.rowWrapper}
                                 >
-                                    <div className={styles.row}>
-                                        <div className={styles.colName}>
-                                            <FileAudio className={styles.iconFile} size={20} />
-                                            {renameId === project.id ? (
-                                                <input
-                                                    className={styles.renameInput}
-                                                    value={renameValue}
-                                                    onChange={e => setRenameValue(e.target.value)}
-                                                    onBlur={handleCommitRename}
-                                                    onKeyDown={handleKeyDown}
-                                                    autoFocus
-                                                    onClick={e => { e.preventDefault(); e.stopPropagation(); }}
-                                                />
-                                            ) : (
+                                    {/* 
+                                        In Bulk Mode: Render DIV, click toggles selection
+                                        In Normal Mode: Render LINK, click navigates
+                                     */}
+                                    {isBulkEdit ? (
+                                        <div
+                                            className={styles.row}
+                                            onClick={() => handleSelectProject(project.id)}
+                                            style={{ cursor: 'pointer', background: isSelected ? 'var(--surface-alt)' : undefined }}
+                                        >
+                                            <div className={styles.colName}>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', marginRight: '12px' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        readOnly
+                                                        style={{ transform: 'scale(1.2)', cursor: 'pointer' }}
+                                                    />
+                                                </div>
+                                                <FileAudio className={styles.iconFile} size={20} />
                                                 <span className={styles.itemName}>{project.title}</span>
-                                            )}
+                                            </div>
+                                            <div className={styles.colOwner}>me</div>
+                                            <div className={styles.colDate}>{formatDate(project.createdAt)}</div>
+                                            <div className={styles.colSize}>{formatSize(project.sizeBytes)}</div>
+                                            <div className={styles.colActions}>
+                                                {/* No actions in bulk mode per row */}
+                                            </div>
                                         </div>
-                                        <div className={styles.colOwner}>me</div>
-                                        <div className={styles.colDate}>{formatDate(project.createdAt)}</div>
-                                        <div className={styles.colSize}>{formatSize(project.sizeBytes)}</div>
-                                        {/* Actions Area - Needs to be OUTSIDE the Link technically, but in Row */}
-                                        {/* e.stopPropagation() is critical here */}
-                                        <div className={styles.colActions}>
-                                            <ActionMenu
-                                                type="project"
-                                                onRename={() => handleStartRename(project.id, project.title)}
-                                                onMove={() => onMoveProject?.(project)}
-                                                onArchive={() => onArchiveProject?.(project)}
-                                                onDelete={() => onDeleteProject?.(project)}
-                                            />
-                                        </div>
-                                    </div>
-                                </Link>
-                            </div>
-                        ))}
+                                    ) : (
+                                        <Link
+                                            href={`/projects/${project.id}`}
+                                            className={styles.rowLink}
+                                        >
+                                            <div className={styles.row}>
+                                                <div className={styles.colName}>
+                                                    <FileAudio className={styles.iconFile} size={20} />
+                                                    {renameId === project.id ? (
+                                                        <input
+                                                            className={styles.renameInput}
+                                                            value={renameValue}
+                                                            onChange={e => setRenameValue(e.target.value)}
+                                                            onBlur={handleCommitRename}
+                                                            onKeyDown={handleKeyDown}
+                                                            autoFocus
+                                                            onClick={e => { e.preventDefault(); e.stopPropagation(); }}
+                                                        />
+                                                    ) : (
+                                                        <span className={styles.itemName}>{project.title}</span>
+                                                    )}
+                                                </div>
+                                                <div className={styles.colOwner}>me</div>
+                                                <div className={styles.colDate}>{formatDate(project.createdAt)}</div>
+                                                <div className={styles.colSize}>{formatSize(project.sizeBytes)}</div>
+                                                <div className={styles.colActions}>
+                                                    <ActionMenu
+                                                        type="project"
+                                                        onRename={() => handleStartRename(project.id, project.title)}
+                                                        onMove={() => onMoveProject?.(project)}
+                                                        onArchive={() => onArchiveProject?.(project)}
+                                                        onDelete={() => onDeleteProject?.(project)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </>
                 )}
 

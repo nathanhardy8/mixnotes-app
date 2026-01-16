@@ -116,6 +116,70 @@ export default function ReviewPage() {
         }
     };
 
+    // Silent Refresh for Realtime
+    const refreshProject = async () => {
+        try {
+            const res = await fetch('/api/review/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ publicId, token })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Preserve local state if needed, or just replace
+                setProject(prev => {
+                    // Only update if changed to avoid renders? React handles object identity checks, but deep comparison is checking.
+                    // For now, simple replacement.
+                    // We might need to ensure activeVersion is preserved if valid?
+                    // The `useEffect` below handles `selectedVersionId` logic.
+                    return data.project;
+                });
+            }
+        } catch (e) {
+            console.error("Failed to refresh project", e);
+        }
+    };
+
+    // Realtime Subscription
+    useEffect(() => {
+        if (!project?.id) return;
+
+        const setupRealtime = async () => {
+            const { createClient } = await import('@/utils/supabase/client');
+            const supabase = createClient();
+
+            const channel = supabase.channel(`review-${project.id}`)
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'projects', filter: `id=eq.${project.id}` },
+                    (payload) => {
+                        console.log('Project updated:', payload);
+                        refreshProject();
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'project_versions', filter: `project_id=eq.${project.id}` },
+                    (payload) => {
+                        console.log('Version updated:', payload);
+                        refreshProject();
+                    }
+                )
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(channel);
+            };
+        };
+
+        const cleanupPromise = setupRealtime();
+
+        // Cleanup function for useEffect
+        return () => {
+            cleanupPromise.then(cleanup => cleanup && cleanup());
+        };
+    }, [project?.id]);
+
     // Polling for comments
     useEffect(() => {
         if (!project?.id) return;

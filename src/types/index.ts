@@ -80,6 +80,8 @@ export interface ProjectVersion {
   createdByUserId?: string;
   isApproved: boolean;
   originalFilename?: string;
+  displayOrder?: number;
+  displayName?: string;
 }
 
 export interface Project {

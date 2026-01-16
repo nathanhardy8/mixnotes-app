@@ -1,0 +1,203 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+}
+
+.modal {
+    background: var(--surface, #111);
+    border-radius: 12px;
+    width: 450px;
+    max-width: 90vw;
+    border: 1px solid var(--border, #333);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    color: var(--foreground, #fff);
+    animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border, #333);
+}
+
+.header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: var(--secondary-foreground, #888);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s;
+}
+
+.closeBtn:hover {
+    color: var(--foreground, #fff);
+    background: var(--surface-hover, rgba(255, 255, 255, 0.1));
+}
+
+.list {
+    padding: 20px;
+    max-height: 50vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.item {
+    background: var(--background, #000);
+    border: 1px solid var(--border, #333);
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.2s;
+}
+
+.item:hover {
+    border-color: var(--primary, #3b82f6);
+}
+
+.dragHandle {
+    color: var(--secondary-foreground, #666);
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+}
+
+.dragHandle:hover {
+    color: var(--foreground, #fff);
+}
+
+.dragHandle:active {
+    cursor: grabbing;
+}
+
+.info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.nameRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.versionName {
+    font-weight: 500;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.editBtn {
+    background: none;
+    border: none;
+    color: var(--secondary-foreground, #666);
+    cursor: pointer;
+    padding: 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.item:hover .editBtn {
+    opacity: 1;
+}
+
+.editBtn:hover {
+    color: var(--primary, #3b82f6);
+}
+
+.nameInput {
+    background: var(--surface-hover, #222);
+    border: 1px solid var(--primary, #3b82f6);
+    color: var(--foreground, #fff);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    width: 100%;
+    outline: none;
+}
+
+.filename {
+    font-size: 0.75rem;
+    color: var(--secondary-foreground, #888);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: monospace;
+    opacity: 0.8;
+}
+
+.deleteBtn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    opacity: 0.6;
+    transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+    opacity: 1;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Ensure clickability */
+.deleteBtn {
+    z-index: 10;
+    position: relative;
+}
+
+.footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border, #333);
+    background: var(--surface-hover, rgba(0, 0, 0, 0.2));
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.helpText {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--secondary-foreground, #666);
+    text-align: center;
+}

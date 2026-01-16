@@ -12,6 +12,7 @@ import Toast from '@/components/Toast';
 import styles from './ProjectView.module.css';
 import { Comment, Project, User } from '@/types';
 import { useAudioShortcuts } from '@/hooks/useAudioShortcuts';
+import VersionManager from '@/components/VersionManager';
 
 export interface ProjectViewProps {
     project: Project;
@@ -58,6 +59,11 @@ export interface ProjectViewProps {
     // Toast (Unified)
     toast?: { message: string, type: 'success' | 'error' } | null;
     setToast?: (val: { message: string, type: 'success' | 'error' } | null) => void;
+
+    // Version Management (Engineer Only)
+    onReorderVersions?: (newOrder: any[]) => void;
+    onDeleteVersion?: (versionId: string) => void;
+    onRenameVersion?: (versionId: string, name: string) => void;
 }
 
 export default function ProjectView({
@@ -91,13 +97,18 @@ export default function ProjectView({
     showSuccessModal,
     setShowSuccessModal,
     toast,
-    setToast
+    setToast,
+    onReorderVersions,
+    onDeleteVersion,
+    onRenameVersion
 }: ProjectViewProps) {
 
     const [isControlsExpanded, setIsControlsExpanded] = useState(true);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [mounted, setMounted] = useState(false);
     const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null);
+
+    const [showVersionManager, setShowVersionManager] = useState(false);
 
     useEffect(() => setMounted(true), []);
 
@@ -234,7 +245,40 @@ export default function ProjectView({
                                     if (wasPlaying) setIsPlaying(true);
                                 }}
                                 latestVersionId={project.versions.sort((a, b) => b.versionNumber - a.versionNumber)[0].id}
+                                isEngineer={role === 'engineer'}
+                                onReorder={(newIds) => {
+                                    if (onReorderVersions && project.versions) {
+                                        // Map IDs back to objects for the handler (it expects objects?)
+                                        // Wait, projectService.reorderVersions expects IDs. 
+                                        // But ProjectView props onReorderVersions says (newOrder: any[]) -> void. 
+                                        // Let's check ProjectPage. It takes ProjectVersion[].
+                                        // So we need to reconstruct the array of objects in new order.
+                                        const reorderedVersions = newIds.map(id => project.versions.find(v => v.id === id)).filter(Boolean);
+                                        onReorderVersions(reorderedVersions);
+                                    }
+                                }}
                             />
+                            {role === 'engineer' && (
+                                <button
+                                    onClick={() => setShowVersionManager(true)}
+                                    style={{
+                                        position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)',
+                                        fontSize: '0.8rem', background: 'none', border: 'none', color: '#666',
+                                        cursor: 'pointer', textDecoration: 'underline'
+                                    }}
+                                >
+                                    Manage Versions
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {role === 'engineer' && activeVersion?.originalFilename && (
+                        <div style={{
+                            fontSize: '0.8rem', color: '#888', marginLeft: '1.5rem', marginTop: '0.5rem',
+                            display: 'flex', alignItems: 'center', gap: '4px'
+                        }}>
+                            Source: <span style={{ fontFamily: 'monospace' }}>{activeVersion.originalFilename}</span>
                         </div>
                     )}
 
@@ -378,12 +422,7 @@ export default function ProjectView({
                                         />
                                     </div>
 
-                                    {/* View Mode */}
-                                    {setViewMode && (
-                                        <button className={styles.viewClientBtn} onClick={() => setViewMode('client')}>
-                                            View as Client
-                                        </button>
-                                    )}
+
                                 </div>
                             )}
                         </div>
@@ -471,6 +510,18 @@ export default function ProjectView({
                         </button>
                     </div>
                 </div>
+            )}
+
+            {/* Version Manager Modal */}
+            {showVersionManager && mounted && createPortal(
+                <VersionManager
+                    versions={project.versions || []}
+                    onReorder={(newOrder) => onReorderVersions?.(newOrder)}
+                    onDelete={(id) => onDeleteVersion?.(id)}
+                    onRename={(id, name) => onRenameVersion?.(id, name)}
+                    onClose={() => setShowVersionManager(false)}
+                />,
+                document.body
             )}
         </div>
     );
