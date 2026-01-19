@@ -12,7 +12,7 @@ import styles from './styles.module.css';
 import { useUser } from '@/context/UserContext';
 import { useProjects } from '@/context/ProjectContext';
 import { projectService } from '@/services/projectService';
-import { Comment, Project, User, ProjectVersion } from '@/types';
+import { Comment, Project, User, ProjectVersion, RevisionRound } from '@/types';
 import { useAudioShortcuts } from '@/hooks/useAudioShortcuts';
 
 import ClientSharingPanel from '@/components/ReviewSettingsPanel';
@@ -45,6 +45,9 @@ export default function ProjectPage() {
 
     // Version State
     const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+    const [revisionRounds, setRevisionRounds] = useState<RevisionRound[]>([]);
+    const [activeRound, setActiveRound] = useState<RevisionRound | null>(null);
+
     const supabase = createClient();
 
     const loadProject = async () => {
@@ -101,6 +104,11 @@ export default function ProjectPage() {
                 { event: '*', schema: 'public', table: 'project_versions', filter: `project_id=eq.${id}` },
                 () => loadProject()
             )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'revision_rounds', filter: `project_id=eq.${id}` },
+                () => loadRounds()
+            )
             .subscribe();
 
         return () => {
@@ -111,6 +119,7 @@ export default function ProjectPage() {
     // Reload comments when Version Changes
     useEffect(() => {
         loadComments();
+        loadRounds();
     }, [selectedVersionId]);
 
     // Initialize/Sync Selected Version
@@ -125,10 +134,41 @@ export default function ProjectPage() {
 
     const loadComments = async () => {
         if (!id) return;
-        // Fetch comments specifically for the ACTIVE VERSION
-        // This ensures markers/list only show what's relevant to this version.
         const data = await projectService.getComments(id, selectedVersionId || undefined);
-        setComments(data || []);
+
+        setComments(prev => {
+            const serverComments = data || [];
+            // Preserve optimistic comments that aren't yet in the server list
+            const optimisticComments = prev.filter(c =>
+                String(c.id).startsWith('temp-') &&
+                !serverComments.some(s => {
+                    // Fuzzy timestamp match (within 0.1s)
+                    const timeMatch = Math.abs(s.timestamp - c.timestamp) < 0.1;
+                    const contentMatch = s.content === c.content;
+                    const authorMatch = (s.authorId === c.authorId || s.authorUserId === c.authorUserId);
+                    return timeMatch && contentMatch && authorMatch;
+                })
+            );
+            return [...serverComments, ...optimisticComments];
+        });
+    };
+
+    const loadRounds = async () => {
+        if (!selectedVersionId) {
+            setRevisionRounds([]);
+            setActiveRound(null);
+            return;
+        }
+        const rounds = await projectService.getRevisionRounds(selectedVersionId);
+        setRevisionRounds(rounds);
+        // Active round is the first one if it's not completed? Or just the latest?
+        // Logic: If latest round is NOT completed, it is the active one.
+        // Or simplified: Just the latest one.
+        if (rounds.length > 0) {
+            setActiveRound(rounds[0]);
+        } else {
+            setActiveRound(null);
+        }
     };
 
 
@@ -159,7 +199,7 @@ export default function ProjectPage() {
 
     // --- HANDLERS ---
 
-    const handleAddComment = async (content: string, timestamp: number, guestName?: string) => {
+    const handleAddComment = async (content: string, timestamp: number, guestName?: string, parentId?: string) => {
         const authorId = currentUser?.id || `guest-${Date.now()}`;
 
         let authorType: 'ENGINEER' | 'CLIENT' = 'CLIENT';
@@ -178,7 +218,12 @@ export default function ProjectPage() {
             authorType,
             authorName,
             authorUserId: currentUser?.id,
-            projectVersionId: selectedVersionId
+
+            projectVersionId: selectedVersionId,
+            revisionRoundId: activeRound?.status === 'draft' ? activeRound.id : undefined,
+            status: 'open',
+            needsClarification: false,
+            parentId // Add parentId
         };
 
         // OPTIMISTIC UPDATE
@@ -188,8 +233,14 @@ export default function ProjectPage() {
         try {
             const added = await projectService.addComment(newComment);
             if (added) {
-                // Replace temp with real
-                setComments(prev => prev.map(c => c.id === tempId ? added : c));
+                // Replace temp with real, but check if real already came in via polling/subscription
+                setComments(prev => {
+                    const exists = prev.some(c => c.id === added.id);
+                    if (exists) {
+                        return prev.filter(c => c.id !== tempId);
+                    }
+                    return prev.map(c => c.id === tempId ? added : c);
+                });
             } else {
                 // Remove temp if failed
                 setComments(prev => prev.filter(c => c.id !== tempId));
@@ -201,11 +252,35 @@ export default function ProjectPage() {
     };
 
     const handleToggleComplete = async (commentId: string, isCompleted: boolean) => {
-        const success = await projectService.toggleCommentComplete(commentId, isCompleted);
-        if (success) {
-            setComments(prev => prev.map(c =>
-                c.id === commentId ? { ...c, isCompleted } : c
-            ));
+        // Legacy support: sync isCompleted with status='resolved'
+        const status = isCompleted ? 'resolved' : 'open';
+
+        // Optimistic
+        setComments(prev => prev.map(c =>
+            c.id === commentId ? { ...c, isCompleted, status } : c
+        ));
+
+        // Call both for compatibility? 
+        // projectService.toggleCommentComplete updates is_completed.
+        // projectService.updateCommentStatus updates status.
+        // Let's do both or update service to do both.
+        // For now, let's call updateCommentStatus which is cleaner for new workflow, 
+        // AND toggleComplete for legacy.
+
+        await projectService.toggleCommentComplete(commentId, isCompleted);
+        await projectService.updateCommentStatus(commentId, status);
+    };
+
+    const handleUpdateCommentStatus = async (commentId: string, updates: { status?: 'open' | 'resolved', needsClarification?: boolean }) => {
+        setComments(prev => prev.map(c =>
+            c.id === commentId ? { ...c, ...updates, isCompleted: updates.status === 'resolved' ? true : (updates.status === 'open' ? false : c.isCompleted) } : c
+        ));
+
+        await projectService.updateCommentStatus(commentId, updates.status, updates.needsClarification);
+
+        // Sync legacy is_completed if status changed
+        if (updates.status) {
+            await projectService.toggleCommentComplete(commentId, updates.status === 'resolved');
         }
     };
 
@@ -343,6 +418,55 @@ export default function ProjectPage() {
             console.error("Failed to rename version");
             // Revert or show error
         }
+
+    };
+
+    const handleStartRound = async () => {
+        if (!project || !selectedVersionId) return;
+
+        // Ensure no pending round?
+        if (activeRound && activeRound.status === 'draft') return;
+
+        const newRound = await projectService.createRevisionRound({
+            projectId: project.id,
+            projectVersionId: selectedVersionId,
+            authorType: currentUser?.role === 'engineer' ? 'ENGINEER' : 'CLIENT', // Assuming engineer can start too? Usually Client starts.
+            authorId: currentUser?.id, // or guest
+            status: 'draft',
+            title: `Revision ${revisionRounds.length + 1}`
+        });
+
+        if (newRound) {
+            await loadRounds();
+            // Also update version status to 'in_review' if it wasn't?
+            // Actually starting a round implies we are working on it.
+            // If it was 'in_review', it stays 'in_review'.
+        }
+    };
+
+    const handleSubmitRound = async () => {
+        if (!activeRound) return;
+
+        const success = await projectService.updateRevisionRoundStatus(activeRound.id, 'submitted');
+        if (success) {
+            // Also update version status to 'changes_requested'
+            if (project?.versions) {
+                const ver = project.versions.find(v => v.id === selectedVersionId);
+                if (ver) {
+                    await projectService.updateVersionReviewStatus(ver.id, 'changes_requested');
+                    // Update local project state for immediate feedback
+                    setProject(prev => {
+                        if (!prev || !prev.versions) return prev;
+                        return {
+                            ...prev,
+                            versions: prev.versions.map(v => v.id === selectedVersionId ? { ...v, reviewStatus: 'changes_requested' } : v)
+                        };
+                    });
+                }
+            }
+            await loadRounds();
+            alert("Feedback submitted to engineer!");
+        }
     };
 
     if (loadingProject) {
@@ -393,6 +517,15 @@ export default function ProjectPage() {
             setShowConfModal={setShowConfModal}
             showSuccessModal={showSuccessModal}
             setShowSuccessModal={setShowSuccessModal}
+
+
+            // Revision Workflow Props
+            revisionRounds={revisionRounds}
+            activeRound={activeRound}
+            onStartRound={handleStartRound}
+
+            onSubmitRound={handleSubmitRound}
+            onUpdateCommentStatus={handleUpdateCommentStatus}
         />
     );
 }

@@ -23,6 +23,7 @@ interface CommentSidebarProps {
     // Actions
     onEditComment?: (commentId: string, content: string) => void;
     onDeleteComment?: (commentId: string) => void;
+    onUpdateStatus?: (commentId: string, updates: { status?: 'open' | 'resolved', needsClarification?: boolean }) => void;
 
     // Permissions
     currentUserRole?: 'engineer' | 'client' | string;
@@ -47,6 +48,7 @@ export default function CommentSidebar({
     onHoverComment,
     onEditComment,
     onDeleteComment,
+    onUpdateStatus, // Add here
     currentUserRole,
     currentUserId
 }: CommentSidebarProps) {
@@ -107,6 +109,11 @@ export default function CommentSidebar({
         try {
             await onAddComment(newComment, currentTime, isGuest ? (guestName.trim() || 'Client') : undefined);
             setNewComment('');
+            setTimeout(() => {
+                if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                }
+            }, 0);
         } catch (error) {
             console.error('Failed to post comment:', error);
         } finally {
@@ -174,6 +181,7 @@ export default function CommentSidebar({
                         guestName={guestName}
                         isGuest={isGuest}
                         formatTime={formatTime}
+                        onUpdateStatus={onUpdateStatus}
                     />
                 ))}
             </div>
@@ -199,6 +207,7 @@ interface CommentItemProps {
     guestName: string;
     isGuest: boolean;
     formatTime: (t: number) => string;
+    onUpdateStatus?: (commentId: string, updates: { status?: 'open' | 'resolved', needsClarification?: boolean }) => void;
 }
 
 function CommentItem({
@@ -215,7 +224,8 @@ function CommentItem({
     currentUserId,
     guestName,
     isGuest,
-    formatTime
+    formatTime,
+    onUpdateStatus
 }: CommentItemProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(node.content);
@@ -260,7 +270,13 @@ function CommentItem({
 
         setReplyContent('');
         setIsSubmitting(false);
+        setIsSubmitting(false);
         setIsReplying(false);
+        setTimeout(() => {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+        }, 0);
     };
 
     // Helper to get display name
@@ -307,13 +323,38 @@ function CommentItem({
                             </div>
                         )}
 
+                        {/* Triage Actions (Engineer Only) */}
+                        {currentUserRole === 'engineer' && (
+                            <div className={styles.triageActions}>
+                                <button
+                                    className={`${styles.triageBtn} ${node.needsClarification ? styles.active : ''}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onUpdateStatus?.(node.id, { needsClarification: !node.needsClarification });
+                                    }}
+                                    title="Needs Clarification"
+                                >
+                                    ?
+                                </button>
+                            </div>
+                        )}
+                        {node.needsClarification && currentUserRole !== 'engineer' && (
+                            <span className={styles.needsClarificationBadge} title="Engineer asked for clarification">?</span>
+                        )}
+
                         <input
                             type="checkbox"
                             className={styles.checkbox}
-                            checked={node.isCompleted || false}
+                            checked={node.status === 'resolved' || node.isCompleted || false}
                             onChange={(e) => {
                                 e.stopPropagation();
-                                onToggleComplete(node.id, !node.isCompleted);
+                                // Prefer updated status logic
+                                if (onUpdateStatus) {
+                                    const newStatus = (node.status === 'resolved' || node.isCompleted) ? 'open' : 'resolved';
+                                    onUpdateStatus(node.id, { status: newStatus });
+                                } else {
+                                    onToggleComplete(node.id, !node.isCompleted);
+                                }
                             }}
                             onClick={(e) => e.stopPropagation()}
                         />
@@ -381,6 +422,7 @@ function CommentItem({
                             guestName={guestName}
                             isGuest={isGuest}
                             formatTime={formatTime}
+                            onUpdateStatus={onUpdateStatus}
                         />
                     ))}
                 </div>

@@ -1,0 +1,96 @@
+.container {
+    padding: 1rem 1.5rem;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.2s;
+}
+
+.container.draft {
+    background-color: #fffbeb;
+    /* amber-50 */
+    border-bottom-color: #fcd34d;
+}
+
+.container.submitted {
+    background-color: #ecfdf5;
+    /* emerald-50 */
+    border-bottom-color: #6ee7b7;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--foreground);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.subtitle {
+    font-size: 0.85rem;
+    color: var(--foreground-muted);
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.btnPrimary {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btnPrimary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btnOutline {
+    background-color: transparent;
+    border-color: var(--border);
+    color: var(--foreground);
+}
+
+.btnOutline:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--border-focus);
+}
+
+.badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badgeDraft {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.badgeSubmitted {
+    background-color: #d1fae5;
+    color: #059669;
+}

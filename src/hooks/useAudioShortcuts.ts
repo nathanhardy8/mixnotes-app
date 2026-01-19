@@ -12,14 +12,18 @@ export const useAudioShortcuts = (isPlaying: boolean, onToggle: (playing: boolea
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.code === 'Space') {
                 // Check if focus is on an input or contenteditable element
+                // Check if focus is on an interactive element
                 const activeEl = document.activeElement;
-                const isInputActive = activeEl && (
+                const isInteractive = activeEl && (
                     activeEl.tagName === 'INPUT' ||
                     activeEl.tagName === 'TEXTAREA' ||
-                    activeEl.getAttribute('contenteditable') === 'true'
+                    activeEl.tagName === 'BUTTON' ||
+                    activeEl.tagName === 'A' ||
+                    activeEl.getAttribute('contenteditable') === 'true' ||
+                    activeEl.getAttribute('role') === 'button'
                 );
 
-                if (!isInputActive) {
+                if (!isInteractive) {
                     e.preventDefault(); // Prevent scroll
                     onToggle(!isPlaying);
                 }

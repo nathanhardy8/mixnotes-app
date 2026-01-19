@@ -88,7 +88,7 @@ export default function ClientFolderPage() {
         <div className={styles.container}>
             <header className={styles.header}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Folder size={32} color="#3b82f6" />
+                    <Folder size={32} color="#2563eb" />
                     <h1 className={styles.clientName}>{clientName}</h1>
                 </div>
                 <div className={styles.meta}>Shared Folder • {projects.length} Project{projects.length !== 1 ? 's' : ''}</div>

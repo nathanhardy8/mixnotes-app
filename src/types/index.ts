@@ -44,6 +44,30 @@ export interface Comment {
   archivedAt?: string;
   parentId?: string;
   updatedAt?: string;
+
+  // Revision Workflow
+  status?: 'open' | 'resolved';
+  needsClarification?: boolean;
+  revisionRoundId?: string;
+}
+
+export type ReviewStatus = 'draft' | 'in_review' | 'changes_requested' | 'approved';
+export type RoundStatus = 'draft' | 'submitted' | 'acknowledged' | 'completed';
+
+export interface RevisionRound {
+  id: string;
+  projectId: string;
+  projectVersionId: string;
+  title?: string;
+  status: RoundStatus;
+
+  authorType: 'ENGINEER' | 'CLIENT';
+  authorId?: string;
+
+  createdAt: string;
+  updatedAt?: string;
+  submittedAt?: string;
+  completedAt?: string;
 }
 
 export interface Client {
@@ -82,6 +106,9 @@ export interface ProjectVersion {
   originalFilename?: string;
   displayOrder?: number;
   displayName?: string;
+
+  // Revision Workflow
+  reviewStatus?: ReviewStatus; // Default 'in_review'
 }
 
 export interface Project {

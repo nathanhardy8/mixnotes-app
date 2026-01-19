@@ -49,7 +49,7 @@ export default function ClientsPage() {
             <div className={styles.container}>
                 <h1>Access Denied</h1>
                 <p>Only engineers can manage clients.</p>
-                <Link href="/dashboard" style={{ color: '#3b82f6' }}>Back to Clients</Link>
+                <Link href="/dashboard" style={{ color: 'var(--primary)' }}>Back to Clients</Link>
             </div>
         );
     }

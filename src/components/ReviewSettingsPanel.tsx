@@ -60,18 +60,9 @@ export default function ClientSharingPanel({ project, onUpdate }: ClientSharingP
 
     return (
         <div className={styles.sidebarCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <div>
-                    <div className={styles.sidebarCardTitle} style={{ marginBottom: '0.25rem' }}>Client Sharing</div>
-                    <div style={{
-                        fontSize: '0.8rem',
-                        color: project.approvalStatus === 'APPROVED' ? '#10b981' : 'var(--foreground-muted)',
-                        fontWeight: 500
-                    }}>
-                        Status: {project.approvalStatus || 'PENDING'} {project.approvalStatus === 'APPROVED' && '✅'}
-                    </div>
-                </div>
-                <label className={styles.toggleSwitch} style={{ transform: 'scale(0.9)', transformOrigin: 'right top' }}>
+            <div className={styles.controlRow}>
+                <div className={styles.sidebarCardTitle}>Comments & Review</div>
+                <label className={styles.toggleSwitch} style={{ transform: 'scale(0.9)', transformOrigin: 'right center' }}>
                     <input
                         type="checkbox"
                         checked={project.reviewEnabled || false}
@@ -80,6 +71,14 @@ export default function ClientSharingPanel({ project, onUpdate }: ClientSharingP
                     <span className={styles.slider}></span>
                 </label>
             </div>
+            <div style={{
+                fontSize: '0.75rem',
+                color: project.approvalStatus === 'APPROVED' ? '#10b981' : 'var(--foreground-muted)',
+                marginBottom: '0.5rem',
+                display: 'flex', alignItems: 'center', gap: '4px'
+            }}>
+                Status: <span style={{ fontWeight: 600 }}>{project.approvalStatus || 'PENDING'}</span> {project.approvalStatus === 'APPROVED' && '✅'}
+            </div>
 
 
 
@@ -87,79 +86,77 @@ export default function ClientSharingPanel({ project, onUpdate }: ClientSharingP
             {
                 project.reviewEnabled && (
                     <div style={{ marginTop: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--foreground-secondary)' }}>
-                                ACCESS LINK
-                            </span>
-                            {linkData?.exists && linkData.url && (
-                                <a
-                                    href={linkData.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{ fontSize: '0.8rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none' }}
-                                >
-                                    Open <ExternalLink size={12} />
-                                </a>
-                            )}
-                        </div>
-
-                        {!project.clientId ? (
-                            <div style={{ color: 'var(--foreground-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
-                                Assign to client to share.
-                            </div>
-                        ) : (
-                            <>
-                                {linkData?.exists && linkData?.url ? (
-                                    <div>
-                                        <div style={{ display: 'flex' }}>
-                                            <input
-                                                readOnly
-                                                value={linkData.url}
-                                                className={styles.linkInput}
-                                                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, background: 'var(--surface-hover)' }}
-                                                onClick={(e) => e.currentTarget.select()}
-                                            />
+                        <div style={{ marginTop: '0.5rem' }}>
+                            {!project.clientId ? (
+                                <div style={{ color: 'var(--foreground-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                                    Assign to client to share.
+                                </div>
+                            ) : (
+                                <>
+                                    {linkData?.exists && linkData?.url ? (
+                                        <div>
+                                            <div style={{ display: 'flex', height: '32px' }}>
+                                                <input
+                                                    readOnly
+                                                    value={linkData.url}
+                                                    className={styles.linkInput}
+                                                    style={{
+                                                        borderTopRightRadius: 0, borderBottomRightRadius: 0,
+                                                        background: 'var(--surface-active)', fontSize: '0.8rem', padding: '0 8px'
+                                                    }}
+                                                    onClick={(e) => e.currentTarget.select()}
+                                                />
+                                                <button
+                                                    onClick={() => copyToClipboard(linkData.url!)}
+                                                    style={{
+                                                        background: copied ? 'var(--primary)' : 'var(--surface)',
+                                                        border: '1px solid var(--border)',
+                                                        borderLeft: 'none',
+                                                        borderTopRightRadius: '4px',
+                                                        borderBottomRightRadius: '4px',
+                                                        padding: '0 10px',
+                                                        cursor: 'pointer',
+                                                        color: copied ? 'white' : 'var(--foreground)',
+                                                        transition: 'all 0.2s',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                    }}
+                                                    title="Copy Link"
+                                                >
+                                                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                                                </button>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', alignItems: 'center' }}>
+                                                <a
+                                                    href={linkData.url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none' }}
+                                                >
+                                                    <ExternalLink size={10} /> Open Client View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center', padding: '0.25rem 0' }}>
                                             <button
-                                                onClick={() => copyToClipboard(linkData.url!)}
+                                                onClick={handleEnableAccess}
+                                                disabled={loadingLink}
                                                 style={{
-                                                    background: copied ? '#10b981' : 'var(--surface-hover)',
-                                                    border: '1px solid var(--border)',
-                                                    borderLeft: 'none',
-                                                    borderTopRightRadius: 'var(--radius)',
-                                                    borderBottomRightRadius: 'var(--radius)',
-                                                    padding: '0 12px',
-                                                    cursor: 'pointer',
-                                                    color: copied ? 'white' : 'var(--foreground-secondary)',
-                                                    transition: 'all 0.2s'
+                                                    background: 'var(--surface)', color: 'var(--primary)', border: '1px solid var(--primary)',
+                                                    borderRadius: '6px', padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600,
+                                                    width: '100%'
                                                 }}
-                                                title="Copy Link"
                                             >
-                                                {copied ? <Check size={16} /> : <Copy size={16} />}
+                                                {loadingLink ? '...' : 'Create Link'}
                                             </button>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '6px', marginTop: '8px', alignItems: 'center', color: 'var(--foreground-muted)', fontSize: '0.75rem' }}>
-                                            <Share2 size={12} /> Directs to Client Folder
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
-                                        <button
-                                            onClick={handleEnableAccess}
-                                            disabled={loadingLink}
-                                            style={{
-                                                background: 'var(--primary)', color: 'white', border: 'none',
-                                                borderRadius: '6px', padding: '6px 12px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600
-                                            }}
-                                        >
-                                            {loadingLink ? 'Generating...' : 'Generate Access Link'}
-                                        </button>
-                                    </div>
-                                )}
-                            </>
-                        )}
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </div>
                 )
             }
-        </div >
+        </div>
     );
 }

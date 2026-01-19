@@ -2,7 +2,109 @@ import { createClient } from '@/utils/supabase/client';
 const supabase = createClient();
 import { Project, Comment, ProjectVersion } from '@/types';
 
+
+
+export type ReviewStatus = 'draft' | 'in_review' | 'changes_requested' | 'approved';
+export type RoundStatus = 'draft' | 'submitted' | 'acknowledged' | 'completed';
+
+export interface RevisionRound {
+    id: string;
+    projectId: string;
+    projectVersionId: string;
+    title?: string;
+    status: RoundStatus;
+
+    authorType: 'ENGINEER' | 'CLIENT';
+    authorId?: string;
+
+    createdAt: string;
+    updatedAt?: string;
+    submittedAt?: string;
+    completedAt?: string;
+}
+
 export const projectService = {
+    // REVISION ROUNDS
+    async getRevisionRounds(versionId: string): Promise<RevisionRound[]> {
+        const { data, error } = await supabase
+            .from('revision_rounds')
+            .select('*')
+            .eq('project_version_id', versionId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching rounds:', error);
+            return [];
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return data.map((r: any) => ({
+            id: r.id,
+            projectId: r.project_id,
+            projectVersionId: r.project_version_id,
+            title: r.title,
+            status: r.status,
+            authorType: r.author_type,
+            authorId: r.author_id,
+            createdAt: r.created_at,
+            updatedAt: r.updated_at,
+            submittedAt: r.submitted_at,
+            completedAt: r.completed_at
+        }));
+    },
+
+    async createRevisionRound(round: Partial<RevisionRound>): Promise<RevisionRound | null> {
+        const { data, error } = await supabase
+            .from('revision_rounds')
+            .insert([{
+                project_id: round.projectId,
+                project_version_id: round.projectVersionId,
+                title: round.title,
+                status: round.status || 'draft',
+                author_type: round.authorType,
+                author_id: round.authorId
+            }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating round:', error);
+            return null;
+        }
+
+        return {
+            id: data.id,
+            projectId: data.project_id,
+            projectVersionId: data.project_version_id,
+            title: data.title,
+            status: data.status,
+            authorType: data.author_type,
+            authorId: data.author_id,
+            createdAt: data.created_at
+        };
+    },
+
+    async updateRevisionRoundStatus(roundId: string, status: RoundStatus): Promise<boolean> {
+        const updates: any = { status };
+        if (status === 'submitted') updates.submitted_at = new Date().toISOString();
+        if (status === 'completed') updates.completed_at = new Date().toISOString();
+
+        const { error } = await supabase
+            .from('revision_rounds')
+            .update(updates)
+            .eq('id', roundId);
+
+        return !error;
+    },
+
+    async updateVersionReviewStatus(versionId: string, status: string): Promise<boolean> {
+        const { error } = await supabase
+            .from('project_versions')
+            .update({ review_status: status })
+            .eq('id', versionId);
+        return !error;
+    },
+
     // PROJECTS
     async getProjects(userId: string): Promise<Project[]> {
         const { data, error } = await supabase
@@ -92,7 +194,9 @@ export const projectService = {
             isApproved: v.is_approved,
             originalFilename: v.original_filename,
             displayOrder: v.display_order || 0,
-            displayName: v.display_name
+
+            displayName: v.display_name,
+            reviewStatus: v.review_status || 'in_review'
         })).sort((a: ProjectVersion, b: ProjectVersion) => {
             // Primary: display_order ASC
             const orderA = a.displayOrder || 0;
@@ -423,6 +527,11 @@ export const projectService = {
             archivedAt: c.archived_at,
             parentId: c.parent_id,
             updatedAt: c.updated_at,
+
+            // New Fields
+            status: c.status || 'open',
+            needsClarification: c.needs_clarification || false,
+            revisionRoundId: c.revision_round_id
         }));
     },
 
@@ -440,7 +549,12 @@ export const projectService = {
                 author_name: comment.authorName,
                 author_user_id: comment.authorUserId,
                 author_client_identifier: comment.authorClientIdentifier,
-                parent_id: comment.parentId
+                parent_id: comment.parentId,
+
+                // New Fields
+                revision_round_id: comment.revisionRoundId,
+                status: comment.status || 'open',
+                needs_clarification: comment.needsClarification || false
             }])
             .select()
             .single();
@@ -463,8 +577,20 @@ export const projectService = {
             authorType: data.author_type,
             authorName: data.author_name,
             authorUserId: data.author_user_id,
-            parentId: data.parent_id
+            parentId: data.parent_id,
+            revisionRoundId: data.revision_round_id,
+            status: data.status || 'open',
+            needsClarification: data.needs_clarification || false
         };
+    },
+
+    async updateCommentStatus(commentId: string, status?: 'open' | 'resolved', needsClarification?: boolean): Promise<boolean> {
+        const updates: any = {};
+        if (status) updates.status = status;
+        if (needsClarification !== undefined) updates.needs_clarification = needsClarification;
+
+        const { error } = await supabase.from('comments').update(updates).eq('id', commentId);
+        return !error;
     },
 
     async toggleCommentComplete(commentId: string, isCompleted: boolean): Promise<boolean> {
@@ -686,7 +812,8 @@ export const projectService = {
                 createdByUserId: v.created_by_user_id,
                 isApproved: v.is_approved,
                 displayOrder: v.display_order || 0,
-                displayName: v.display_name
+                displayName: v.display_name,
+                reviewStatus: v.review_status || 'in_review'
             })).sort((a: any, b: any) => {
                 const orderA = a.displayOrder || 0;
                 const orderB = b.displayOrder || 0;

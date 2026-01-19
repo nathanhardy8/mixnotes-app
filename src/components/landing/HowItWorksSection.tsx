@@ -16,13 +16,13 @@ export default function HowItWorksSection() {
                         </p>
                         <ul style={{ listStyle: 'none', padding: 0, color: '#ffffff' }}>
                             <li style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ color: '#3b82f6' }}>✓</span> Manage multiple clients easily
+                                <span style={{ color: '#2563eb' }}>✓</span> Manage multiple clients easily
                             </li>
                             <li style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ color: '#3b82f6' }}>✓</span> Version control built-in
+                                <span style={{ color: '#2563eb' }}>✓</span> Version control built-in
                             </li>
                             <li style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ color: '#3b82f6' }}>✓</span> Look 10x more professional
+                                <span style={{ color: '#2563eb' }}>✓</span> Look 10x more professional
                             </li>
                         </ul>
                     </div>
@@ -44,13 +44,13 @@ export default function HowItWorksSection() {
                         </p>
                         <ul style={{ listStyle: 'none', padding: 0, color: '#ffffff' }}>
                             <li style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ color: '#3b82f6' }}>✓</span> No login required for clients
+                                <span style={{ color: '#2563eb' }}>✓</span> No login required for clients
                             </li>
                             <li style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ color: '#3b82f6' }}>✓</span> Mobile-friendly player
+                                <span style={{ color: '#2563eb' }}>✓</span> Mobile-friendly player
                             </li>
                             <li style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ color: '#3b82f6' }}>✓</span> One-tap approval
+                                <span style={{ color: '#2563eb' }}>✓</span> One-tap approval
                             </li>
                         </ul>
                     </div>

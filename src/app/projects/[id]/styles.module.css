@@ -518,7 +518,8 @@ input:checked+.slider:before {
     font-size: 0.95rem;
     font-weight: 600;
     color: white;
-    background: #3b82f6;
+    background: var(--primary);
+    /* Softer Slate */
     /* Softer Blue */
     border: none;
     border-radius: 6px;

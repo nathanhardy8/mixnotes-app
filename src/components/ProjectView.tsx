@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { Lock, Download, ArrowLeft, ChevronDown, ChevronUp, Share2, Copy, RefreshCw, Check, Upload } from 'lucide-react';
 import { createPortal } from 'react-dom';
@@ -13,6 +13,8 @@ import styles from './ProjectView.module.css';
 import { Comment, Project, User } from '@/types';
 import { useAudioShortcuts } from '@/hooks/useAudioShortcuts';
 import VersionManager from '@/components/VersionManager';
+
+import { RevisionRound } from '@/types';
 
 export interface ProjectViewProps {
     project: Project;
@@ -31,7 +33,7 @@ export interface ProjectViewProps {
     setSeekTarget: (val: { time: number; timestamp: number } | null) => void;
 
     // Handlers
-    onAddComment: (content: string, timestamp: number, authorName?: string) => Promise<void>;
+    onAddComment: (content: string, timestamp: number, authorName?: string, parentId?: string) => Promise<void>;
     onToggleComplete: (commentId: string, isCompleted: boolean) => void;
     onToggleLock?: () => void;
     onDownload: () => void;
@@ -64,6 +66,14 @@ export interface ProjectViewProps {
     onReorderVersions?: (newOrder: any[]) => void;
     onDeleteVersion?: (versionId: string) => void;
     onRenameVersion?: (versionId: string, name: string) => void;
+
+    // Revision Workflow
+    revisionRounds?: RevisionRound[];
+    activeRound?: RevisionRound | null;
+    onStartRound?: () => void;
+
+    onSubmitRound?: () => void;
+    onUpdateCommentStatus?: (commentId: string, updates: { status?: 'open' | 'resolved', needsClarification?: boolean }) => void;
 }
 
 export default function ProjectView({
@@ -100,7 +110,12 @@ export default function ProjectView({
     setToast,
     onReorderVersions,
     onDeleteVersion,
-    onRenameVersion
+    onRenameVersion,
+    revisionRounds,
+    activeRound,
+    onStartRound,
+    onSubmitRound,
+    onUpdateCommentStatus
 }: ProjectViewProps) {
 
     const [isControlsExpanded, setIsControlsExpanded] = useState(true);
@@ -133,14 +148,14 @@ export default function ProjectView({
     const versionLabel = (project.versions && project.versions.length > 0 && activeVersion) ? `Version ${activeVersion.versionNumber}` : 'Version 1';
 
     // Filter comments
-    const versionedComments = comments.filter(c => {
+    const versionedComments = useMemo(() => comments.filter(c => {
         if (!activeVersionId) return true;
         return c.projectVersionId === activeVersionId || !c.projectVersionId;
-    });
+    }), [comments, activeVersionId]);
 
-    const visibleComments = showArchived
+    const visibleComments = useMemo(() => showArchived
         ? versionedComments
-        : versionedComments.filter(c => !c.isCompleted);
+        : versionedComments.filter(c => !c.isCompleted), [versionedComments, showArchived]);
 
     // Audio Shortcuts (Component level)
     useAudioShortcuts(isPlaying, setIsPlaying);
@@ -207,14 +222,14 @@ export default function ProjectView({
                                         disabled={approving}
                                         style={{
                                             display: 'flex', alignItems: 'center', gap: '8px',
-                                            backgroundColor: '#3b82f6', color: 'white',
+                                            backgroundColor: 'var(--primary)', color: 'white',
                                             border: 'none', padding: '0.6rem 1.2rem', borderRadius: '8px',
                                             fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
                                             opacity: approving ? 0.7 : 1, transition: 'background 0.2s',
                                             boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                         }}
                                         onMouseOver={e => !approving && (e.currentTarget.style.backgroundColor = '#2563eb')}
-                                        onMouseOut={e => !approving && (e.currentTarget.style.backgroundColor = '#3b82f6')}
+                                        onMouseOut={e => !approving && (e.currentTarget.style.backgroundColor = 'var(--primary)')}
                                     >
                                         {approving ? 'Approving...' : <><Check size={18} /> Approve Final Mix</>}
                                     </button>
@@ -270,8 +285,11 @@ export default function ProjectView({
                                     Manage Versions
                                 </button>
                             )}
+
                         </div>
                     )}
+
+
 
                     {role === 'engineer' && activeVersion?.originalFilename && (
                         <div style={{
@@ -290,10 +308,12 @@ export default function ProjectView({
                         isPlaying={isPlaying}
                         onPlayPause={setIsPlaying}
                         comments={visibleComments}
-                        onMarkerClick={(id) => {
+                        onMarkerClick={useCallback((id: string) => {
+                            // Find the comment in the *current* comments prop closure (or better, from a ref if really needed, but useMemo above handles dep changes)
+                            // Actually, we need to search 'comments' which is a dependency.
                             const c = comments.find(x => x.id === id);
                             if (c) setSeekTarget({ time: c.timestamp, timestamp: Date.now() });
-                        }}
+                        }, [comments, setSeekTarget])}
                     />
 
 
@@ -346,7 +366,9 @@ export default function ProjectView({
                         onToggleComplete={onToggleComplete}
                         isGuest={isClientView || !currentUser}
                         showArchived={showArchived}
+
                         onToggleArchived={() => setShowArchived(!showArchived)}
+                        onUpdateStatus={onUpdateCommentStatus}
                     />
 
                     {/* Engineer Controls */}
@@ -383,7 +405,8 @@ export default function ProjectView({
                                         </>
                                     )}
 
-                                    {/* Settings */}
+                                    {/* Settings - ClientSharingPanel handles its own internal layout, we should pass clear props or check its styling */}
+                                    {/* Since ClientSharingPanel uses .sidebarCard internally, it will pick up the new transparent styling. */}
                                     <ClientSharingPanel
                                         project={project}
                                         onUpdate={(updates) => onUpdateProject && onUpdateProject(updates)}
@@ -391,12 +414,9 @@ export default function ProjectView({
 
                                     {/* Download Config */}
                                     <div className={styles.sidebarCard}>
-                                        <div className={styles.sidebarCardTitle}>Download Access</div>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                            <div style={{ fontSize: '0.9rem', color: 'var(--foreground)' }}>
-                                                Client can listen & download
-                                            </div>
-                                            <label className={styles.toggleSwitch}>
+                                        <div className={styles.controlRow}>
+                                            <div className={styles.sidebarCardTitle}>Downloads</div>
+                                            <label className={styles.toggleSwitch} style={{ transform: 'scale(0.9)', transformOrigin: 'right center' }}>
                                                 <input
                                                     type="checkbox"
                                                     checked={project.allowDownload || false}
@@ -405,22 +425,21 @@ export default function ProjectView({
                                                 <span className={styles.slider}></span>
                                             </label>
                                         </div>
+                                        {/* Download button as a subtle secondary action below or logically grouped */}
                                         {((role === 'engineer') || (project.allowDownload)) && (
-                                            <button onClick={onDownload} className={styles.downloadBtn} style={{ height: '40px', fontSize: '0.9rem' }}>
-                                                <Download size={16} style={{ marginRight: '8px' }} /> Download File
-                                            </button>
+                                            <div style={{ paddingLeft: '0', marginTop: '0.25rem' }}>
+                                                <button onClick={onDownload} style={{
+                                                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                                    fontSize: '0.8rem', padding: '6px', background: 'var(--surface)', border: '1px solid var(--border)',
+                                                    borderRadius: '4px', cursor: 'pointer', color: 'var(--foreground)'
+                                                }}>
+                                                    <Download size={14} /> Download File
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
 
-                                    {/* Revisions */}
-                                    <div className={styles.sidebarCard}>
-                                        <div className={styles.sidebarCardTitle}>Revisions</div>
-                                        <RevisionsControlCompact
-                                            limit={project.revisionLimit}
-                                            used={project.revisionsUsed || 0}
-                                            onUpdate={(newLimit) => onUpdateProject && onUpdateProject({ revisionLimit: newLimit })}
-                                        />
-                                    </div>
+
 
 
                                 </div>
@@ -428,160 +447,109 @@ export default function ProjectView({
                         </div>
                     )}
                 </div>
-            </main>
+            </main >
 
             {/* Toast */}
-            {toast && setToast && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                />
-            )}
+            {
+                toast && setToast && (
+                    <Toast
+                        message={toast.message}
+                        type={toast.type}
+                        onClose={() => setToast(null)}
+                    />
+                )
+            }
 
             {/* Confirmation Modal */}
-            {showConfModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }} onClick={() => setShowConfModal(false)}>
+            {
+                showConfModal && (
                     <div style={{
-                        backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
-                        maxWidth: '450px', width: '90%', textAlign: 'center', transform: 'translateY(-20px)',
-                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
-                    }} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#111' }}>Approve Final Mix?</h2>
-                        <p style={{ color: '#666', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-                            This will mark this version as the final approved mix and notify your engineer.
-                        </p>
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }} onClick={() => setShowConfModal(false)}>
+                        <div style={{
+                            backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
+                            maxWidth: '450px', width: '90%', textAlign: 'center', transform: 'translateY(-20px)',
+                            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                        }} onClick={e => e.stopPropagation()}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#111' }}>Approve Final Mix?</h2>
+                            <p style={{ color: '#666', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                                This will mark this version as the final approved mix and notify your engineer.
+                            </p>
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                <button
+                                    onClick={() => setShowConfModal(false)}
+                                    style={{
+                                        padding: '0.6rem 1.2rem', border: '1px solid #ddd', borderRadius: '8px',
+                                        background: 'white', fontWeight: 600, cursor: 'pointer', color: '#555'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={onApprove}
+                                    disabled={approving}
+                                    style={{
+                                        padding: '0.6rem 1.2rem', border: 'none', borderRadius: '8px',
+                                        background: '#3b82f6', color: 'white', fontWeight: 600, cursor: 'pointer',
+                                        opacity: approving ? 0.7 : 1
+                                    }}
+                                >
+                                    {approving ? 'Approving...' : 'Approve'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Success Modal */}
+            {
+                showSuccessModal && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        <div style={{
+                            backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
+                            maxWidth: '450px', width: '90%', textAlign: 'center',
+                            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                        }}>
+                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#111' }}>Congratulations!</h2>
+                            <p style={{ color: '#666', marginBottom: '2rem', lineHeight: 1.5 }}>
+                                We've notified your engineer that you approved the final mix!
+                            </p>
                             <button
-                                onClick={() => setShowConfModal(false)}
+                                onClick={() => setShowSuccessModal(false)}
                                 style={{
-                                    padding: '0.6rem 1.2rem', border: '1px solid #ddd', borderRadius: '8px',
-                                    background: 'white', fontWeight: 600, cursor: 'pointer', color: '#555'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={onApprove}
-                                disabled={approving}
-                                style={{
-                                    padding: '0.6rem 1.2rem', border: 'none', borderRadius: '8px',
+                                    padding: '0.75rem 2rem', border: 'none', borderRadius: '8px',
                                     background: '#3b82f6', color: 'white', fontWeight: 600, cursor: 'pointer',
-                                    opacity: approving ? 0.7 : 1
+                                    width: '100%'
                                 }}
                             >
-                                {approving ? 'Approving...' : 'Approve'}
+                                OK
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Success Modal */}
-            {showSuccessModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                    <div style={{
-                        backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
-                        maxWidth: '450px', width: '90%', textAlign: 'center',
-                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
-                    }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#111' }}>Congratulations!</h2>
-                        <p style={{ color: '#666', marginBottom: '2rem', lineHeight: 1.5 }}>
-                            We've notified your engineer that you approved the final mix!
-                        </p>
-                        <button
-                            onClick={() => setShowSuccessModal(false)}
-                            style={{
-                                padding: '0.75rem 2rem', border: 'none', borderRadius: '8px',
-                                background: '#3b82f6', color: 'white', fontWeight: 600, cursor: 'pointer',
-                                width: '100%'
-                            }}
-                        >
-                            OK
-                        </button>
-                    </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Version Manager Modal */}
-            {showVersionManager && mounted && createPortal(
-                <VersionManager
-                    versions={project.versions || []}
-                    onReorder={(newOrder) => onReorderVersions?.(newOrder)}
-                    onDelete={(id) => onDeleteVersion?.(id)}
-                    onRename={(id, name) => onRenameVersion?.(id, name)}
-                    onClose={() => setShowVersionManager(false)}
-                />,
-                document.body
-            )}
-        </div>
-    );
-}
-
-function RevisionsControlCompact({ limit, used, onUpdate }: { limit?: number | null, used: number, onUpdate: (val: number | null) => void }) {
-    const [isEditing, setIsEditing] = useState(false);
-    const [isUnlimited, setIsUnlimited] = useState(limit === null || limit === undefined);
-    const [newLimit, setNewLimit] = useState(limit || 3);
-
-    useEffect(() => {
-        setIsUnlimited(limit === null || limit === undefined);
-        setNewLimit(limit || 3);
-    }, [limit, isEditing]);
-
-    const handleSave = () => {
-        const val = isUnlimited ? null : newLimit;
-        if (!isUnlimited && val !== null && val < used) {
-            alert(`Cannot set limit lower than revisions used (${used}).`);
-            return;
-        }
-        onUpdate(val);
-        setIsEditing(false);
-    };
-
-    return (
-        <div className={styles.revisionsRow}>
-            {!isEditing ? (
-                <>
-                    <span>
-                        Revisions Included: <strong>{limit === null || limit === undefined ? 'Unlimited' : limit}</strong> · Used: <strong>{used}</strong>
-                    </span>
-                    <button onClick={() => setIsEditing(true)} className={styles.editLink}>Edit</button>
-                </>
-            ) : (
-                <div style={{ width: '100%', padding: '0.5rem', background: 'var(--surface-hover)', borderRadius: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', gap: '8px' }}>
-                        <label style={{ fontSize: '0.85rem' }}>Limit:</label>
-                        <input
-                            type="number"
-                            value={newLimit}
-                            disabled={isUnlimited}
-                            onChange={(e) => setNewLimit(Math.max(used, parseInt(e.target.value) || 0))}
-                            style={{ width: '60px', padding: '4px', borderRadius: '4px', border: '1px solid var(--border)' }}
-                        />
-                        <input
-                            type="checkbox"
-                            checked={isUnlimited}
-                            onChange={(e) => setIsUnlimited(e.target.checked)}
-                            id="rev-compact-check"
-                            style={{ marginLeft: '6px' }}
-                        />
-                        <label htmlFor="rev-compact-check" style={{ fontSize: '0.8rem', marginLeft: '2px' }}>Unlimited</label>
-                    </div>
-                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-                        <button onClick={() => setIsEditing(false)} style={{ fontSize: '0.8rem', padding: '2px 6px', cursor: 'pointer', background: 'none', border: '1px solid var(--border)', borderRadius: '4px' }}>Cancel</button>
-                        <button onClick={handleSave} style={{ fontSize: '0.8rem', padding: '2px 6px', cursor: 'pointer', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px' }}>Save</button>
-                    </div>
-                </div>
-            )}
-        </div>
+            {
+                showVersionManager && mounted && createPortal(
+                    <VersionManager
+                        versions={project.versions || []}
+                        onReorder={(newOrder) => onReorderVersions?.(newOrder)}
+                        onDelete={(id) => onDeleteVersion?.(id)}
+                        onRename={(id, name) => onRenameVersion?.(id, name)}
+                        onClose={() => setShowVersionManager(false)}
+                    />,
+                    document.body
+                )
+            }
+        </div >
     );
 }

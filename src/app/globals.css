@@ -2,39 +2,42 @@
   /* System Fonts */
   --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-  /* --- COLOR SYSTEM (Default: Light Mode) --- */
+  /* --- COLOR SYSTEM (Slate Theme) --- */
 
   /* Backgrounds */
-  --background: #f9fafb;
-  /* Gray-50 */
+  --background: #f8fafc;
+  /* Slate-50 */
   --surface: #ffffff;
   /* White */
-  --surface-hover: #f3f4f6;
-  /* Gray-100 */
-  --surface-active: #e5e7eb;
-  /* Gray-200 */
+  --surface-hover: #f1f5f9;
+  /* Slate-100 */
+  --surface-active: #e2e8f0;
+  /* Slate-200 */
+  --surface-alt: #f8fafc;
+  /* Slate-50 used for secondary surfaces */
 
   /* Text / Foreground */
-  --foreground: #111827;
-  /* Gray-900 */
-  --foreground-secondary: #4b5563;
-  /* Gray-600 */
-  --foreground-muted: #9ca3af;
-  /* Gray-400 */
+  --foreground: #0f172a;
+  /* Slate-900 */
+  --foreground-secondary: #64748b;
+  /* Slate-500 */
+  --foreground-muted: #94a3b8;
+  /* Slate-400 */
 
   /* Borders */
   --border: #e2e8f0;
-  /* Gray-200-ish */
-  --border-focus: #9ca3af;
-  /* Gray-400 */
+  /* Slate-200 */
+  --border-focus: #94a3b8;
+  /* Slate-400 */
 
-  /* Primary Brand */
-  --primary: #3b82f6;
-  /* Blue-500 */
-  --primary-hover: #2563eb;
+  /* Primary Brand - Blue Restored */
+  --primary: #2563eb;
   /* Blue-600 */
+  --primary-hover: #1d4ed8;
+  /* Blue-700 */
   --primary-foreground: #ffffff;
-  --primary-glow: rgba(59, 130, 246, 0.4);
+  --primary-glow: rgba(37, 99, 235, 0.2);
+  /* Subtle blue glow */
 
   /* Destructive */
   --destructive: #ef4444;
@@ -47,12 +50,14 @@
   /* Blue-900 */
 
   /* --- SPACING & SHAPE --- */
-  --radius: 8px;
+  --radius: 6px;
+  /* Slightly tighter radius for professional feel */
 
   /* --- SHADOWS --- */
+  /* Very subtle, calm shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
   --shadow-overlay: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
@@ -67,11 +72,9 @@ body {
   padding: 0;
   overflow-x: hidden;
   font-size: 15px;
-  /* Base size upgrade */
-  line-height: 1.5;
-  /* Good readability */
+  line-height: 1.6;
+  /* Increased line height for calmness */
   -webkit-font-smoothing: antialiased;
-  /* Crisp text */
   -moz-osx-font-smoothing: grayscale;
 }
 
@@ -94,28 +97,30 @@ h5,
 h6 {
   margin: 0;
   font-weight: 600;
+  /* Standardized weight */
   color: var(--foreground);
-  letter-spacing: -0.025em;
-  /* Tight modern headings */
+  letter-spacing: -0.02em;
+  /* Slightly tighter */
 }
 
 h1 {
-  font-size: 32px;
+  font-size: 28px;
+  /* Reduced overly large headings */
   line-height: 1.2;
 }
 
 h2 {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1.3;
 }
 
 h3 {
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.4;
 }
 
 h4 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
 }
 

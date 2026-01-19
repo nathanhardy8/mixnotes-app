@@ -1,6 +1,7 @@
 /* Landing Page Styles */
 .landingWrapper {
     background-color: #0f172a;
+    /* Slate 900 */
     /* Dark background */
     color: #f8fafc;
     font-family: var(--font-inter);
@@ -24,8 +25,9 @@
 .headingXl {
     font-size: 3.5rem;
     line-height: 1.1;
-    font-weight: 800;
-    letter-spacing: -0.02em;
+    font-weight: 700;
+    /* Reduced weight */
+    letter-spacing: -0.03em;
     margin-bottom: 1.5rem;
 
     color: #ffffff;
@@ -34,9 +36,10 @@
 .headingLg {
     font-size: 2.5rem;
     line-height: 1.2;
-    font-weight: 700;
+    font-weight: 600;
     margin-bottom: 1rem;
     color: #ffffff;
+    letter-spacing: -0.02em;
 }
 
 .headingMd {
@@ -50,8 +53,8 @@
 .subheading {
     font-size: 1.25rem;
     line-height: 1.6;
-    color: #ffffff;
-    /* Slate-300 */
+    color: #94a3b8;
+    /* Slate-400 */
     max-width: 600px;
     margin: 0 auto 2rem auto;
 }
@@ -86,20 +89,24 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: #3b82f6;
-    color: white;
+    background-color: #f8fafc;
+    /* White/Off-white for contrast on dark */
+    color: #0f172a;
+    /* Slate 900 */
     font-weight: 600;
     padding: 0.875rem 2rem;
-    border-radius: 8px;
+    border-radius: 6px;
+    /* Matched radius */
     font-size: 1.125rem;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .btnPrimary:hover {
-    background-color: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.6);
+    background-color: #e2e8f0;
+    /* Slate 200 */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .btnSecondary {
@@ -107,10 +114,11 @@
     align-items: center;
     justify-content: center;
     background-color: transparent;
-    color: #e2e8f0;
+    color: #94a3b8;
+    /* Slate 400 */
     font-weight: 500;
     padding: 0.875rem 2rem;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 1rem;
     transition: color 0.2s ease;
     margin-left: 1rem;
@@ -118,7 +126,8 @@
 
 .btnSecondary:hover {
     color: white;
-    text-decoration: underline;
+    text-decoration: none;
+    /* Removed underline */
 }
 
 /* Hero Section */
@@ -138,9 +147,10 @@
     max-width: 1000px;
     height: 400px;
     /* Placeholder for visual */
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.5);
+    /* Slate 800 with opacity */
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -240,7 +250,7 @@
 
 .pricingCard {
     background: #1e293b;
-    border: 1px solid #3b82f6;
+    border: 1px solid var(--primary);
     border-radius: 16px;
     padding: 3rem;
     max-width: 400px;
@@ -263,8 +273,8 @@
 
 /* Final CTA */
 .ctaSection {
-    background-color: #3b82f6;
-    color: white;
+    background-color: var(--surface);
+    color: var(--primary);
     text-align: center;
     padding: 6rem 0;
 }
@@ -350,7 +360,7 @@
     --foreground-muted: #94a3b8;
     --surface: #1e293b;
     --border: #334155;
-    --primary: #3b82f6;
+    --primary: #475569;
 }
 
 /* Version Selector Wrapper */
@@ -391,12 +401,12 @@
 }
 
 .commentInput:focus {
-    border-color: #3b82f6;
+    border-color: var(--primary);
     outline: none;
 }
 
 .commentBtn {
-    background: #3b82f6;
+    background: var(--primary);
     color: white;
     padding: 0 1.5rem;
     border-radius: 6px;

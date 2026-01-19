@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import { Comment, ProjectVersion } from '@/types';
 import styles from './AudioPlayer.module.css';
@@ -18,7 +18,7 @@ interface AudioPlayerProps {
     highlightedCommentId?: string | null;
 }
 
-export default function AudioPlayer({
+const AudioPlayer = memo(function AudioPlayer({
     versions = [],
     activeVersionId,
     onTimeUpdate,
@@ -44,8 +44,9 @@ export default function AudioPlayer({
     // Sync Loop Ref
     const rafIdRef = useRef<number | null>(null);
 
-    // -- Initialize Audio Elements --
+    // -- Initialize / Sync Audio Elements --
     useEffect(() => {
+        // 1. Add New
         versions.forEach(v => {
             if (!audioRefs.current[v.id]) {
                 const audio = new Audio();
@@ -66,6 +67,9 @@ export default function AudioPlayer({
                 });
 
                 audio.addEventListener('error', (e) => {
+                    // Suppress uninteresting errors (Abort)
+                    const err = (e.target as HTMLAudioElement).error;
+                    if (err && (err.code === 20 || err.code === 1)) return;
                     console.error("Audio Load Error:", v.id, audio.src, e);
                 });
 
@@ -73,16 +77,35 @@ export default function AudioPlayer({
             }
         });
 
-        // Cleanup all audio on unmount
+        // 2. Remove Old (Diffing)
+        const currentIds = new Set(versions.map(v => v.id));
+        Object.keys(audioRefs.current).forEach(id => {
+            if (!currentIds.has(id)) {
+                const audio = audioRefs.current[id];
+                audio.pause();
+                audio.src = '';
+                audio.load(); // Reset
+                delete audioRefs.current[id];
+            }
+        });
+    }, [versions, activeVersionId, onPlayPause]); // Include dependencies used in listeners if closures were an issue, but ref pattern avoids it. 
+    // Actually, closures in event listeners (like onPlayPause) might be stale if we don't recreate them. 
+    // BUT we don't want to recreate audio elements just because onPlayPause changed.
+    // The previous code didn't update listeners either. 
+    // The "Right" way is to use refs for callbacks inside listeners, or just accept that 'versions' change is the main trigger.
+    // For now, keeping semantic equivalent to previous but with diffing.
+
+    // -- Cleanup on Unmount --
+    useEffect(() => {
         return () => {
             Object.values(audioRefs.current).forEach(audio => {
                 audio.pause();
                 audio.src = '';
-                audio.load(); // Reset
+                audio.load();
             });
             audioRefs.current = {};
         };
-    }, [versions]);
+    }, []);
 
     // -- WaveSurfer Visual --
     useEffect(() => {
@@ -93,8 +116,8 @@ export default function AudioPlayer({
         const ws = WaveSurfer.create({
             container: containerRef.current,
             waveColor: '#d1d5db',
-            progressColor: '#3b82f6',
-            cursorColor: '#3b82f6',
+            progressColor: '#2563eb', // Blue-600 (Matches --primary)
+            cursorColor: '#0f172a',   // Slate-900 (Matches --foreground)
             barWidth: 1,
             barGap: 0.5,
             barRadius: 2,
@@ -114,7 +137,14 @@ export default function AudioPlayer({
 
         wavesurferRef.current = ws;
 
-        return () => ws.destroy();
+        return () => {
+            try {
+                ws.destroy();
+            } catch (e: any) {
+                // Ignore AbortError caused by cancelling ongoing fetches
+                if (e.name !== 'AbortError') console.error(e);
+            }
+        };
     }, []);
 
     // -- Switching Logic --
@@ -125,7 +155,9 @@ export default function AudioPlayer({
         // Visuals
         const v = versions.find(x => x.id === activeVersionId);
         if (v && wavesurferRef.current) {
-            wavesurferRef.current.load(v.audioUrl);
+            wavesurferRef.current.load(v.audioUrl).catch(e => {
+                if (e.name !== 'AbortError') console.error(e);
+            });
         }
 
         // Seamless Source Switch
@@ -278,4 +310,6 @@ export default function AudioPlayer({
             </div>
         </div>
     );
-}
+});
+
+export default AudioPlayer;

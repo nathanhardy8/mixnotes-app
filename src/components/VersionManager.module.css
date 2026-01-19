@@ -84,7 +84,7 @@
 }
 
 .item:hover {
-    border-color: var(--primary, #3b82f6);
+    border-color: var(--primary);
 }
 
 .dragHandle {
@@ -139,12 +139,12 @@
 }
 
 .editBtn:hover {
-    color: var(--primary, #3b82f6);
+    color: var(--primary);
 }
 
 .nameInput {
     background: var(--surface-hover, #222);
-    border: 1px solid var(--primary, #3b82f6);
+    border: 1px solid var(--primary);
     color: var(--foreground, #fff);
     padding: 2px 6px;
     border-radius: 4px;

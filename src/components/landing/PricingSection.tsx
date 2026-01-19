@@ -12,7 +12,7 @@ export default function PricingSection() {
                 </p>
 
                 <div className={styles.pricingCard}>
-                    <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: '#3b82f6', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>
+                    <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: '#2563eb', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>
                         MOST POPULAR
                     </div>
                     <h3 className={styles.headingMd}>Pro Engineer</h3>
@@ -25,16 +25,16 @@ export default function PricingSection() {
 
                     <div style={{ textAlign: 'left', marginBottom: '2rem' }}>
                         <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', color: '#e2e8f0' }}>
-                            <span style={{ color: '#3b82f6' }}>✓</span> Unlimited Projects
+                            <span style={{ color: '#2563eb' }}>✓</span> Unlimited Projects
                         </div>
                         <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', color: '#e2e8f0' }}>
-                            <span style={{ color: '#3b82f6' }}>✓</span> Unlimited Storage
+                            <span style={{ color: '#2563eb' }}>✓</span> Unlimited Storage
                         </div>
                         <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', color: '#e2e8f0' }}>
-                            <span style={{ color: '#3b82f6' }}>✓</span> High-Res Audio Support
+                            <span style={{ color: '#2563eb' }}>✓</span> High-Res Audio Support
                         </div>
                         <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', color: '#e2e8f0' }}>
-                            <span style={{ color: '#3b82f6' }}>✓</span> Client Management
+                            <span style={{ color: '#2563eb' }}>✓</span> Client Management
                         </div>
                     </div>
 
