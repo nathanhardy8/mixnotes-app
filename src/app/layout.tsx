@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Antigravity",
+  title: "Mixnotes",
   description: "Audio collaboration platform",
 };
 
