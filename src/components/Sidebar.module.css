@@ -1,127 +1,182 @@
- .sidebar {
-     width: 250px;
-     background-color: var(--surface);
-     border-right: 1px solid var(--border);
-     display: flex;
-     flex-direction: column;
-     padding: 1.5rem 1rem;
-     height: 100vh;
-     position: sticky;
-     top: 0;
- }
+/* Mobile Backdrop */
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    animation: fadeIn 0.2s ease-out;
+}
 
- .logo {
-     display: flex;
-     align-items: center;
-     gap: 0.75rem;
-     margin-bottom: 2rem;
-     padding: 0 0.5rem;
-     font-weight: 700;
-     font-size: 1.15rem;
-     color: var(--foreground);
- }
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
 
- .nav {
-     display: flex;
-     flex-direction: column;
-     gap: 0.25rem;
-     flex: 1;
- }
+    to {
+        opacity: 1;
+    }
+}
 
- .navItem {
-     display: flex;
-     align-items: center;
-     gap: 0.75rem;
-     padding: 0.65rem 0.85rem;
-     /* Taller touch targets */
-     border-radius: var(--radius);
-     color: var(--foreground-secondary);
-     font-size: 0.95rem;
-     font-weight: 500;
-     transition: all 0.15s ease-out;
-     text-decoration: none;
- }
+.sidebar {
+    width: 250px;
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
- .navItem:hover {
-     background-color: var(--surface-hover);
-     color: var(--foreground);
- }
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        width: 80%;
+        max-width: 300px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
 
- .navItem.active {
-     background-color: var(--accent);
-     color: var(--primary);
-     font-weight: 600;
-     position: relative;
- }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+}
 
- .navItem.active::before {
-     content: '';
-     position: absolute;
-     left: 0;
-     top: 10%;
-     bottom: 10%;
-     width: 3px;
-     background-color: var(--primary);
-     border-top-right-radius: 4px;
-     border-bottom-right-radius: 4px;
- }
+.logo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--foreground);
+}
 
- .userSection {
-     margin-top: auto;
-     padding-top: 1rem;
-     border-top: 1px solid var(--border);
- }
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
 
- .userInfo {
-     display: flex;
-     align-items: center;
-     gap: 0.75rem;
- }
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    /* Taller touch targets */
+    border-radius: var(--radius);
+    color: var(--foreground-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.15s ease-out;
+    text-decoration: none;
+}
 
- .avatar {
-     width: 36px;
-     height: 36px;
-     border-radius: 50%;
-     object-fit: cover;
-     background: var(--surface-hover);
- }
+.navItem:hover {
+    background-color: var(--surface-hover);
+    color: var(--foreground);
+}
 
- .userName {
-     font-weight: 600;
-     font-size: 0.9rem;
-     color: var(--foreground);
- }
+.navItem.active {
+    background-color: var(--accent);
+    color: var(--primary);
+    font-weight: 600;
+    position: relative;
+}
 
- .userRole {
-     font-size: 0.75rem;
-     color: var(--foreground-muted);
-     text-transform: capitalize;
- }
+.navItem.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10%;
+    bottom: 10%;
+    width: 3px;
+    background-color: var(--primary);
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
 
- .roleSwitcher {
-     display: flex;
-     background: var(--surface-active);
-     padding: 2px;
-     border-radius: 6px;
-     margin-top: 1rem;
- }
+.userSection {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
 
- .roleBtn {
-     flex: 1;
-     border: none;
-     background: transparent;
-     padding: 4px;
-     font-size: 0.75rem;
-     font-weight: 600;
-     cursor: pointer;
-     border-radius: 4px;
-     filter: opacity(0.7);
-     color: var(--foreground-secondary);
- }
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
 
- .roleBtn.activeRole {
-     background: var(--surface);
-     color: var(--foreground);
-     box-shadow: var(--shadow-sm);
-     filter: opacity(1);
- }
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-hover);
+}
+
+.userName {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--foreground);
+}
+
+.userRole {
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+    text-transform: capitalize;
+}
+
+.roleSwitcher {
+    display: flex;
+    background: var(--surface-active);
+    padding: 2px;
+    border-radius: 6px;
+    margin-top: 1rem;
+}
+
+.roleBtn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    filter: opacity(0.7);
+    color: var(--foreground-secondary);
+}
+
+.roleBtn.activeRole {
+    background: var(--surface);
+    color: var(--foreground);
+    box-shadow: var(--shadow-sm);
+    filter: opacity(1);
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: var(--foreground-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .closeBtn {
+        display: block;
+    }
+}
