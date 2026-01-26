@@ -13,6 +13,10 @@ export interface Subscription {
   trialUsed?: boolean;
   createdAt: string;
   updatedAt: string;
+  // Entitlements
+  plan?: 'engineer_basic' | 'engineer_pro';
+  quotaBytes?: number;
+  hasAiMixAssistant?: boolean;
 }
 
 export interface User {
@@ -142,6 +146,7 @@ export interface Project {
 
   lastClientActivityAt?: string;
   allowDownload?: boolean;
+  clientVersionVisibility?: 'all' | 'latest'; // Default 'all'
 
   // Computed/Hydrated fields
   versions?: ProjectVersion[];

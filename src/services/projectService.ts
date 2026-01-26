@@ -137,6 +137,7 @@ export const projectService = {
             archivedAt: p.archived_at,
             allowDownload: p.allow_download,
             clientName: p.client?.name, // Map resolved client name
+            clientVersionVisibility: p.client_version_visibility || 'all',
         }));
     },
 
@@ -165,6 +166,7 @@ export const projectService = {
             isLocked: p.is_locked,
             price: p.price,
             archivedAt: p.archived_at,
+            clientVersionVisibility: p.client_version_visibility || 'all',
         }));
     },
 
@@ -241,7 +243,8 @@ export const projectService = {
             approvedAt: p.approved_at,
             approvedBy: p.approved_by,
             remindersEnabled: p.reminders_enabled,
-            versions: versions
+            versions: versions,
+            clientVersionVisibility: p.client_version_visibility || 'all'
         };
     },
 
@@ -269,7 +272,8 @@ export const projectService = {
                 clientId: data.client_id,
                 engineerId: data.engineer_id,
                 isLocked: data.is_locked,
-                price: data.price
+                price: data.price,
+                clientVersionVisibility: data.client_version_visibility || 'all'
             } as Project;
         } catch (e) {
             console.error('Create Project Network Error:', e);
@@ -285,6 +289,7 @@ export const projectService = {
         if (updates.clientIds !== undefined) dbUpdates.client_ids = updates.clientIds;
         if (updates.clientId !== undefined) dbUpdates.client_id = updates.clientId;
         if (updates.allowDownload !== undefined) dbUpdates.allow_download = updates.allowDownload;
+        if (updates.clientVersionVisibility !== undefined) dbUpdates.client_version_visibility = updates.clientVersionVisibility;
 
         // Review specific updates
         if (updates.reviewEnabled !== undefined) dbUpdates.review_enabled = updates.reviewEnabled;
@@ -303,16 +308,16 @@ export const projectService = {
     },
 
     // VERSIONS
-    async createVersion(projectId: string, audioUrl: string, userId: string): Promise<ProjectVersion | null> {
-        // 1. Get current max version
+    async createVersion(projectId: string, audioUrl: string, userId: string, originalFilename?: string): Promise<ProjectVersion | null> {
+        // 1. Get current versions to calculate next version number and display order
         const { data: versions } = await supabase
             .from('project_versions')
-            .select('version_number')
+            .select('version_number, display_order')
             .eq('project_id', projectId)
-            .order('version_number', { ascending: false })
-            .limit(1);
+            .order('version_number', { ascending: false }); // Get all to find max version
 
         let nextVersion = 1;
+        let nextDisplayOrder = 0;
 
         // Check for legacy backfill needed
         if (!versions || versions.length === 0) {
@@ -330,14 +335,20 @@ export const projectService = {
                     project_id: projectId,
                     version_number: 1,
                     audio_url: project.audio_url,
-                    created_by_user_id: userId, // ideally original author, but falling back to uploader or we could leave it null/system
+                    created_by_user_id: userId, // ideally original author
                     display_name: 'Original Mix',
-                    created_at: project.created_at // preserve timestamp
+                    created_at: project.created_at,
+                    display_order: 0 // First one is 0
                 }]);
                 nextVersion = 2; // Next is 2
+                nextDisplayOrder = 1; // Next is 1
             }
         } else {
             nextVersion = versions[0].version_number + 1;
+
+            // Calculate max display order
+            const maxOrder = Math.max(...versions.map(v => v.display_order || 0));
+            nextDisplayOrder = maxOrder + 1;
         }
 
         // 2. Insert new version
@@ -347,7 +358,9 @@ export const projectService = {
                 project_id: projectId,
                 version_number: nextVersion,
                 audio_url: audioUrl,
-                created_by_user_id: userId
+                created_by_user_id: userId,
+                original_filename: originalFilename,
+                display_order: nextDisplayOrder
             }])
             .select()
             .single();
@@ -366,7 +379,9 @@ export const projectService = {
             audioUrl: data.audio_url,
             createdAt: data.created_at,
             createdByUserId: data.created_by_user_id,
-            isApproved: data.is_approved
+            isApproved: data.is_approved,
+            originalFilename: data.original_filename,
+            displayOrder: data.display_order
         };
     },
 
@@ -469,27 +484,28 @@ export const projectService = {
     },
 
     async reorderVersions(projectId: string, orderedVersionIds: string[]): Promise<boolean> {
-        console.log(`[reorderVersions] Reordering ${orderedVersionIds.length} versions for project ${projectId}`);
+        console.log(`[reorderVersions] Reordering ${orderedVersionIds.length} versions for project ${projectId} (Atomic RPC)`);
 
-        const updates = orderedVersionIds.map((id, index) =>
-            supabase.from('project_versions')
-                .update({ display_order: index })
-                .eq('id', id)
-                .select()
-        );
+        const { error } = await supabase.rpc('reorder_project_versions', {
+            p_project_id: projectId,
+            p_version_ids: orderedVersionIds
+        });
 
-        const results = await Promise.all(updates);
-        const errors = results.filter(r => r.error);
-
-        if (errors.length > 0) {
-            console.error("[reorderVersions] Errors:", errors.map(e => e.error));
+        if (error) {
+            console.error("[reorderVersions] RPC Error:", error);
             return false;
         }
 
+        /*
         // Touch project to trigger realtime update for clients
         await supabase.from('projects')
             .update({ updated_at: new Date().toISOString() })
             .eq('id', projectId);
+        */
+        // RPC update on project_versions should trigger realtime for project_versions table listeners? 
+        // Yes, regular updates fire events.
+        // However, to be 100% sure the client project version list updates, triggering project update is good backup, 
+        // but might double-fetch. Let's rely on project_versions listener first.
 
         return true;
     },
@@ -802,8 +818,10 @@ export const projectService = {
 
             // Map Data (similar to getProjectById but from raw API response)
             // The API returns snake_case from DB
+            const rawVisibility = data.client_version_visibility || 'all';
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const versions = (data.versions || []).map((v: any) => ({
+            let versions = (data.versions || []).map((v: any) => ({
                 id: v.id,
                 projectId: v.project_id,
                 versionNumber: v.version_number,
@@ -813,7 +831,8 @@ export const projectService = {
                 isApproved: v.is_approved,
                 displayOrder: v.display_order || 0,
                 displayName: v.display_name,
-                reviewStatus: v.review_status || 'in_review'
+                reviewStatus: v.review_status || 'in_review',
+                originalFilename: v.original_filename // Ensure mapped
             })).sort((a: any, b: any) => {
                 const orderA = a.displayOrder || 0;
                 const orderB = b.displayOrder || 0;
@@ -821,7 +840,25 @@ export const projectService = {
                 return b.versionNumber - a.versionNumber;
             });
 
-            const latestVersionAudio = versions.length > 0 ? versions[0].audioUrl : data.audio_url;
+            // Enforce visibility restriction
+            if (rawVisibility === 'latest' && versions.length > 1) {
+                // Keep only the first one (latest) because we sorted descending logic?
+                // Wait, logic above is: displayOrder ASC (so [0] is oldest).
+                // Let's check sort logic:
+                // Primary: display_order ASC -> [0] is Version 1, [1] is Version 2.
+                // Latest version is the LAST one in the array.
+                // Ah, above logic: `if (orderA !== orderB) return orderA - orderB;` -> Ascending.
+                // So versions[versions.length - 1] is the latest.
+                const latest = versions[versions.length - 1];
+                versions = [latest];
+            }
+
+            // Determine effective audio if filtering or standard
+            // Logic for regular ProjectView expects versions sorted by displayOrder ASC usually?
+            // ProjectView audio player uses them in order.
+
+            // Re-calc latest audio
+            const latestVersionAudio = versions.length > 0 ? versions[versions.length - 1].audioUrl : data.audio_url;
 
             return {
                 id: data.id,
@@ -843,7 +880,8 @@ export const projectService = {
                 revisionLimit: data.revision_limit,
                 revisionsUsed: data.revisions_used,
                 approvalStatus: data.approval_status,
-                versions: versions
+                versions: versions,
+                clientVersionVisibility: rawVisibility
             };
         } catch (e) {
             console.error('Get Shared Project Error:', e);

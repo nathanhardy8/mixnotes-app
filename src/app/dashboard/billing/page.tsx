@@ -54,10 +54,11 @@ export default function BillingPage() {
         setLoading(false);
     };
 
-    const handleSubscribe = async (plan: 'month' | 'year', provider: 'stripe' | 'paypal') => {
+    const handleSubscribe = async (planId: 'engineer_basic' | 'engineer_pro', provider: 'stripe' | 'paypal') => {
         if (loading) return;
         setLoading(true);
-        const res = await billingService.createCheckoutSession(currentUser.id, plan, provider);
+        // Defaulting interval to 'month' for now as per immediate requirements
+        const res = await billingService.createCheckoutSession(currentUser.id, planId, 'month', provider);
         if (res.url) {
             window.location.href = res.url;
         } else {
@@ -148,57 +149,16 @@ export default function BillingPage() {
             {/* Plans */}
             {!isExempt && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-                    {/* Monthly */}
+                    {/* Basic Plan */}
                     <div className={styles.planCard}>
                         <div className={styles.planHeader}>
-                            <h3>Monthly</h3>
-                            <div className={styles.price}>$20<span>/month</span></div>
+                            <h3>Engineer Basic</h3>
+                            <div className={styles.price}>$12<span>/month</span></div>
                         </div>
                         <ul className={styles.features}>
+                            <li><Check size={16} /> 50 GB Storage</li>
                             <li><Check size={16} /> Unlimited Projects</li>
-                            <li><Check size={16} /> Unlimited Storage</li>
                             <li><Check size={16} /> Client Review Portal</li>
-                        </ul>
-                        {!isActive && (
-                            <div className={styles.actions}>
-                                {(!sub?.trialUsed && !isTrialing) ? (
-                                    <button onClick={handleStartTrial} disabled={loading} className={styles.primaryBtn}>
-                                        {loading ? 'Processing...' : 'Start 1-Month Free Trial'}
-                                    </button>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
-                                        <button onClick={() => handleSubscribe('month', 'stripe')} disabled={loading} className={styles.primaryBtn}>
-                                            Subscribe with Stripe
-                                        </button>
-                                        <button onClick={() => handleSubscribe('month', 'paypal')} disabled={loading} className={styles.secondaryBtn}>
-                                            Subscribe with PayPal
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        {isActive && sub?.planInterval === 'month' && (
-                            <div className={styles.currentBadge}>Current Plan</div>
-                        )}
-                        {isActive && sub?.planInterval === 'year' && (
-                            <button onClick={() => { }} disabled className={styles.secondaryBtn}>Switch to Monthly</button>
-                        )}
-                    </div>
-
-                    {/* Annual */}
-                    <div className={styles.planCard}>
-                        {/* Best Value Badge */}
-                        <div style={{ position: 'absolute', top: -12, right: 24, background: '#db2777', color: 'white', fontSize: '0.75rem', padding: '4px 12px', borderRadius: '12px', fontWeight: 600 }}>
-                            BEST VALUE
-                        </div>
-                        <div className={styles.planHeader}>
-                            <h3>Annual</h3>
-                            <div className={styles.price}>$216<span>/year</span></div>
-                            <div className={styles.savings}>Equivalent to $18/mo</div>
-                        </div>
-                        <ul className={styles.features}>
-                            <li><Check size={16} /> All Pro features included</li>
-                            <li><Check size={16} /> Save 10% vs Monthly</li>
                         </ul>
                         {!isActive && (
                             <div className={styles.actions}>
@@ -208,22 +168,41 @@ export default function BillingPage() {
                                     </button>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
-                                        <button onClick={() => handleSubscribe('year', 'stripe')} disabled={loading} className={styles.primaryBtn}>
-                                            Subscribe with Stripe (Yearly)
-                                        </button>
-                                        <button onClick={() => handleSubscribe('year', 'paypal')} disabled={loading} className={styles.secondaryBtn}>
-                                            Subscribe with PayPal (Yearly)
+                                        <button onClick={() => handleSubscribe('engineer_basic', 'stripe')} disabled={loading} className={styles.primaryBtn}>
+                                            Subscribe with Stripe
                                         </button>
                                     </div>
                                 )}
                             </div>
                         )}
-                        {isActive && sub?.planInterval === 'year' && (
+                        {isActive && sub?.plan === 'engineer_basic' && (
                             <div className={styles.currentBadge}>Current Plan</div>
                         )}
-                        {isActive && sub?.planInterval === 'month' && (
-                            <button onClick={() => { }} disabled className={styles.secondaryBtn}>Switch to Annual</button>
-                        )}
+                    </div>
+
+                    {/* PRO Plan (Coming Soon) */}
+                    <div className={styles.planCard} style={{ borderColor: '#e2e8f0', opacity: 0.9 }}>
+                        {/* Coming Soon Badge */}
+                        <div style={{ position: 'absolute', top: -12, right: 24, background: '#6366f1', color: 'white', fontSize: '0.75rem', padding: '4px 12px', borderRadius: '12px', fontWeight: 600 }}>
+                            COMING SOON
+                        </div>
+                        <div className={styles.planHeader}>
+                            <h3>Engineer Pro</h3>
+                            <div className={styles.price}>$21<span>/month</span></div>
+                        </div>
+                        <ul className={styles.features}>
+                            <li><Check size={16} /> 100 GB Storage</li>
+                            <li><Check size={16} /> <strong>AI Mix Assistant</strong></li>
+                            <li><Check size={16} /> Priority Support</li>
+                        </ul>
+                        <div className={styles.actions}>
+                            <button disabled className={styles.secondaryBtn} style={{ cursor: 'not-allowed', opacity: 0.6 }}>
+                                Coming Soon
+                            </button>
+                        </div>
+                        <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#64748b', textAlign: 'center' }}>
+                            AI-powered mix feedback is launching soon.
+                        </p>
                     </div>
                 </div>
             )}

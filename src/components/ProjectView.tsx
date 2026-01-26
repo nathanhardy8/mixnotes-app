@@ -13,6 +13,7 @@ import styles from './ProjectView.module.css';
 import { Comment, Project, User } from '@/types';
 import { useAudioShortcuts } from '@/hooks/useAudioShortcuts';
 import VersionManager from '@/components/VersionManager';
+import AiMixAssistantCallout from '@/components/AiMixAssistantCallout';
 
 import { RevisionRound } from '@/types';
 
@@ -145,7 +146,10 @@ export default function ProjectView({
 
     const activeVersion = project?.versions?.find(v => v.id === activeVersionId);
     const currentAudioUrl = activeVersion ? activeVersion.audioUrl : (project?.audioUrl || '');
-    const versionLabel = (project.versions && project.versions.length > 0 && activeVersion) ? `Version ${activeVersion.versionNumber}` : 'Version 1';
+    const activeVersionIndex = project.versions?.findIndex(v => v.id === activeVersionId) ?? -1;
+    const versionLabel = (project.versions && project.versions.length > 0 && activeVersion)
+        ? (activeVersion.displayName || `Version ${activeVersionIndex + 1}`)
+        : 'Version 1';
 
     // Filter comments
     const versionedComments = useMemo(() => comments.filter(c => {
@@ -240,65 +244,64 @@ export default function ProjectView({
 
                     {/* Version Selector (New Tabbed UI) */}
                     {project.versions && project.versions.length > 0 && (
-                        <div style={{ marginTop: '0', marginBottom: '-1px', position: 'relative', zIndex: 10, paddingLeft: '1.5rem' }}>
-                            <VersionSelector
-                                versions={project.versions}
-                                activeVersionId={activeVersionId || activeVersion?.id || project.versions[0].id}
-                                onSelect={(vid) => {
-                                    // Seamless Switching Logic
-                                    const timeToPreserve = currentTime;
-                                    const wasPlaying = isPlaying;
-
-                                    setActiveVersionId(vid);
-
-                                    // Force seek to preserve time
-                                    // Use slight delay to ensure render cycle? No, immediate state update is best.
-                                    setSeekTarget({ time: timeToPreserve, timestamp: Date.now() });
-
-                                    // Play state is preserved in 'isPlaying' prop, 
-                                    // AudioPlayer will re-sync via its useEffect[isPlaying]
-                                    if (wasPlaying) setIsPlaying(true);
-                                }}
-                                latestVersionId={project.versions.sort((a, b) => b.versionNumber - a.versionNumber)[0].id}
-                                isEngineer={role === 'engineer'}
-                                onReorder={(newIds) => {
-                                    if (onReorderVersions && project.versions) {
-                                        // Map IDs back to objects for the handler (it expects objects?)
-                                        // Wait, projectService.reorderVersions expects IDs. 
-                                        // But ProjectView props onReorderVersions says (newOrder: any[]) -> void. 
-                                        // Let's check ProjectPage. It takes ProjectVersion[].
-                                        // So we need to reconstruct the array of objects in new order.
-                                        const reorderedVersions = newIds.map(id => (project.versions || []).find(v => v.id === id)).filter(Boolean);
-                                        onReorderVersions(reorderedVersions);
+                        <div style={{
+                            marginTop: '0',
+                            marginBottom: '-1px',
+                            position: 'relative',
+                            zIndex: 10,
+                            paddingLeft: '1.5rem',
+                            display: 'flex',
+                            alignItems: 'flex-end', // Align bottom so tabs sit on line
+                            justifyContent: 'space-between',
+                            gap: '1rem',
+                            paddingRight: '1rem' // Add padding for right side
+                        }}>
+                            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                                <VersionSelector
+                                    versions={viewMode === 'client' && project.clientVersionVisibility === 'latest' ?
+                                        // Use visible versions logic (only latest)
+                                        [project.versions.slice().sort((a, b) => (b.displayOrder || 0) - (a.displayOrder || 0) || (b.versionNumber - a.versionNumber))[0]]
+                                        : project.versions
                                     }
-                                }}
-                            />
+                                    activeVersionId={activeVersionId || activeVersion?.id || project.versions[0].id}
+                                    onSelect={(vid) => {
+                                        // Seamless Switching Logic
+                                        const timeToPreserve = currentTime;
+                                        const wasPlaying = isPlaying;
+
+                                        setActiveVersionId(vid);
+
+                                        // Force seek to preserve time
+                                        setSeekTarget({ time: timeToPreserve, timestamp: Date.now() });
+
+                                        if (wasPlaying) setIsPlaying(true);
+                                    }}
+                                    latestVersionId={project.versions.sort((a, b) => b.versionNumber - a.versionNumber)[0].id}
+                                    isEngineer={role === 'engineer'}
+                                    onReorder={(newIds) => {
+                                        if (onReorderVersions && project.versions) {
+                                            const reorderedVersions = newIds.map(id => (project.versions || []).find(v => v.id === id)).filter(Boolean);
+                                            onReorderVersions(reorderedVersions);
+                                        }
+                                    }}
+                                />
+                            </div>
                             {role === 'engineer' && (
                                 <button
                                     onClick={() => setShowVersionManager(true)}
                                     style={{
-                                        position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)',
                                         fontSize: '0.8rem', background: 'none', border: 'none', color: '#666',
-                                        cursor: 'pointer', textDecoration: 'underline'
+                                        cursor: 'pointer', textDecoration: 'underline', whiteSpace: 'nowrap',
+                                        marginBottom: '0.75rem' // Align with text
                                     }}
                                 >
                                     Manage Versions
                                 </button>
                             )}
-
                         </div>
                     )}
 
 
-
-                    {role === 'engineer' && activeVersion?.originalFilename && (
-                        <div style={{
-                            fontSize: '0.8rem', color: '#888', marginLeft: '1.5rem', marginTop: '0.5rem',
-                            display: 'flex', alignItems: 'center', gap: '4px'
-                        }}>
-                            Source: <span style={{ fontFamily: 'monospace' }}>{activeVersion.originalFilename}</span>
-                        </div>
-                    )}
 
                     <AudioPlayer
                         versions={project.versions || []}
@@ -316,11 +319,23 @@ export default function ProjectView({
                         }, [comments, setSeekTarget])}
                     />
 
+                    <div className={styles.projectMeta} style={{ marginTop: '0.75rem', marginBottom: '1rem', display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px', lineHeight: 1.5 }}>
+                        <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{versionLabel}</span>
+                        <span style={{ color: '#666' }}>•</span>
+                        <span
+                            title={activeVersion?.originalFilename || 'Original filename unavailable'}
+                            style={{ display: 'inline-block', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom', color: '#666' }}
+                        >
+                            {activeVersion?.originalFilename || 'Original filename unavailable'}
+                        </span>
+                        <span style={{ color: '#666' }}>•</span>
+                        <span style={{ color: '#666' }}>{new Date(activeVersion?.createdAt || project.createdAt).toLocaleDateString()}</span>
+                    </div>
 
-
-                    <p className={styles.projectMeta}>
-                        {versionLabel} • Uploaded by Engineer • {new Date(project.createdAt).toLocaleDateString()}
-                    </p>
+                    {/* AI Mix Assistant Callout (Engineer Only) */}
+                    {role === 'engineer' && (
+                        <AiMixAssistantCallout />
+                    )}
 
                     {/* Client Download (Unlocked) */}
                     {isClientView && project.allowDownload && (
@@ -405,44 +420,68 @@ export default function ProjectView({
                                         </>
                                     )}
 
-                                    {/* Settings - ClientSharingPanel handles its own internal layout, we should pass clear props or check its styling */}
-                                    {/* Since ClientSharingPanel uses .sidebarCard internally, it will pick up the new transparent styling. */}
+                                    {/* Settings - ClientSharingPanel handles its own internal layout */}
                                     <ClientSharingPanel
                                         project={project}
                                         onUpdate={(updates) => onUpdateProject && onUpdateProject(updates)}
+                                        transparent={true}
                                     />
 
                                     {/* Download Config */}
-                                    <div className={styles.sidebarCard}>
-                                        <div className={styles.controlRow}>
-                                            <div className={styles.sidebarCardTitle}>Downloads</div>
-                                            <label className={styles.toggleSwitch} style={{ transform: 'scale(0.9)', transformOrigin: 'right center' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={project.allowDownload || false}
-                                                    onChange={(e) => onUpdateProject && onUpdateProject({ allowDownload: e.target.checked })}
-                                                />
-                                                <span className={styles.slider}></span>
-                                            </label>
-                                        </div>
-                                        {/* Download button as a subtle secondary action below or logically grouped */}
-                                        {((role === 'engineer') || (project.allowDownload)) && (
-                                            <div style={{ paddingLeft: '0', marginTop: '0.25rem' }}>
-                                                <button onClick={onDownload} style={{
-                                                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                                    fontSize: '0.8rem', padding: '6px', background: 'var(--surface)', border: '1px solid var(--border)',
-                                                    borderRadius: '4px', cursor: 'pointer', color: 'var(--foreground)'
-                                                }}>
-                                                    <Download size={14} /> Download File
-                                                </button>
-                                            </div>
-                                        )}
+                                    <div className={styles.controlRow} style={{ padding: '0.75rem 0' }}>
+                                        <div className={styles.sidebarCardTitle}>Downloads</div>
+                                        <label className={styles.toggleSwitch} style={{ transform: 'scale(0.9)', transformOrigin: 'right center' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={project.allowDownload || false}
+                                                onChange={(e) => onUpdateProject && onUpdateProject({ allowDownload: e.target.checked })}
+                                            />
+                                            <span className={styles.slider}></span>
+                                        </label>
                                     </div>
+                                    {((role === 'engineer') || (project.allowDownload)) && (
+                                        <div style={{ paddingLeft: '0', marginTop: '0.25rem', marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--surface-active)' }}>
+                                            <button onClick={onDownload} style={{
+                                                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                                fontSize: '0.8rem', padding: '6px', background: 'var(--surface)', border: '1px solid var(--border)',
+                                                borderRadius: '4px', cursor: 'pointer', color: 'var(--foreground)'
+                                            }}>
+                                                <Download size={14} /> Download File
+                                            </button>
+                                        </div>
+                                    )}
 
-
-
-
+                                    {/* Version Visibility Config */}
+                                    <div className={styles.controlRow} style={{ padding: '0.75rem 0' }}>
+                                        <div className={styles.sidebarCardTitle}>Client can view all versions</div>
+                                        <label className={styles.toggleSwitch} style={{ transform: 'scale(0.9)', transformOrigin: 'right center' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={project.clientVersionVisibility !== 'latest'}
+                                                onChange={(e) => onUpdateProject && onUpdateProject({ clientVersionVisibility: e.target.checked ? 'all' : 'latest' })}
+                                            />
+                                            <span className={styles.slider}></span>
+                                        </label>
+                                    </div>
+                                    {project.clientVersionVisibility === 'latest' && project.versions && project.versions.length > 0 && (
+                                        <div style={{
+                                            fontSize: '0.75rem', color: 'var(--foreground-muted)', marginTop: '0.5rem',
+                                            background: 'var(--surface-active)', padding: '0.5rem', borderRadius: '6px'
+                                        }}>
+                                            Client will see: <strong>Version {
+                                                // Latest version derivation (safe copy)
+                                                [...project.versions].sort((a, b) => (b.displayOrder || 0) - (a.displayOrder || 0))[0].versionNumber
+                                            }</strong> — {
+                                                [...project.versions].sort((a, b) => (b.displayOrder || 0) - (a.displayOrder || 0))[0].originalFilename
+                                            }
+                                        </div>
+                                    )}
                                 </div>
+
+
+
+
+
                             )}
                         </div>
                     )}
@@ -542,7 +581,6 @@ export default function ProjectView({
                 showVersionManager && mounted && createPortal(
                     <VersionManager
                         versions={project.versions || []}
-                        onReorder={(newOrder) => onReorderVersions?.(newOrder)}
                         onDelete={(id) => onDeleteVersion?.(id)}
                         onRename={(id, name) => onRenameVersion?.(id, name)}
                         onClose={() => setShowVersionManager(false)}

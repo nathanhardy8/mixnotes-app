@@ -62,12 +62,12 @@ export const billingService = {
 
     // In a real app, this generates a Stripe Session URL.
     // For this build, we will simulate the connection via API to allow testing.
-    async createCheckoutSession(userId: string, plan: 'month' | 'year', provider: 'stripe' | 'paypal'): Promise<{ url?: string; error?: string }> {
+    async createCheckoutSession(userId: string, planId: 'engineer_basic' | 'engineer_pro', interval: 'month' | 'year', provider: 'stripe' | 'paypal'): Promise<{ url?: string; error?: string }> {
         try {
             const res = await fetch('/api/billing/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plan, provider }) // User ID inferred from session
+                body: JSON.stringify({ planId, interval, provider }) // User ID inferred from session
             });
             const data = await res.json();
             if (!res.ok) return { error: data.error };

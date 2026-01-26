@@ -24,6 +24,15 @@ export default function CommentsPage() {
     const [items, setItems] = useState<InboxItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const loadInbox = async () => {
+        setIsLoading(true);
+        if (currentUser) {
+            const data = await projectService.getProjectsWithComments(currentUser.id);
+            setItems(data);
+        }
+        setIsLoading(false);
+    };
+
     useEffect(() => {
         if (!currentUser && !userLoading) {
             // Wait for auth
@@ -33,15 +42,6 @@ export default function CommentsPage() {
             loadInbox();
         }
     }, [currentUser, userLoading]);
-
-    const loadInbox = async () => {
-        setIsLoading(true);
-        if (currentUser) {
-            const data = await projectService.getProjectsWithComments(currentUser.id);
-            setItems(data);
-        }
-        setIsLoading(false);
-    };
 
     if (userLoading || isLoading) {
         return (

@@ -1,0 +1,679 @@
+
+> audio-collab@0.1.0 lint
+> eslint
+
+
+/Users/nathanhardy/Documents/Antigravity/scripts/diagnose_placeholder.ts
+  2:10  warning  'projectService' is defined but never used  @typescript-eslint/no-unused-vars
+  4:16  warning  'test' is defined but never used            @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/scripts/migrate_comments_versions.ts
+  34:21  error  'versions' is never reassigned. Use 'const' instead  prefer-const
+
+/Users/nathanhardy/Documents/Antigravity/scripts/set-admin-role.ts
+  52:19  warning  'updatedUser' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/auth/forgot-password/route.ts
+  32:34  warning  'error' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/auth/reset-password/route.ts
+  3:10  warning  'validateToken' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/billing/start-trial/route.ts
+  5:28  warning  'request' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/clients/[id]/access-link/route.ts
+  35:19  warning  'existing' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/clients/[id]/route.ts
+  15:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/clients/[id]/uploads/init/route.ts
+  14:23  warning  'mimeType' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  78:26  warning  'e' is defined but never used                  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/clients/[id]/uploads/route.ts
+   86:26  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  195:26  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/cron/cleanup-comments/route.ts
+  31:14  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/cron/reminders/route.ts
+  67:27  warning  'links' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/projects/[id]/route.ts
+  17:11  warning  'isAdmin' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  20:20  warning  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/projects/route.ts
+  7:43  warning  'engineerId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/review/comment/route.ts
+  12:61  warning  'authorName' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  76:26  warning  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/review/comments/route.ts
+   76:26  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  106:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/review/folder/validate/route.ts
+   1:10  warning  'createClient' is defined but never used        @typescript-eslint/no-unused-vars
+  54:14  warning  'e' is defined but never used                   @typescript-eslint/no-unused-vars
+  84:36  warning  'projError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/api/review/validate/route.ts
+    6:11  warning  'supabase' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  119:22  warning  'e' is defined but never used                  @typescript-eslint/no-unused-vars
+  172:56  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  172:64  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  180:47  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  196:36  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/app/clients/[clientId]/page.tsx
+    3:31  warning  'use' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   15:11  warning  'router' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   28:13  error    Error: Cannot access variable before it is declared
+
+`loadData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/nathanhardy/Documents/Antigravity/src/app/clients/[clientId]/page.tsx:28:13
+  26 |     useEffect(() => {
+  27 |         if (currentUser?.id && clientId) {
+> 28 |             loadData();
+     |             ^^^^^^^^ `loadData` accessed before it is declared
+  29 |         }
+  30 |     }, [currentUser?.id, clientId]);
+  31 |
+
+/Users/nathanhardy/Documents/Antigravity/src/app/clients/[clientId]/page.tsx:32:5
+  30 |     }, [currentUser?.id, clientId]);
+  31 |
+> 32 |     const loadData = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 33 |         if (!clientId) return;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 34 |         const [clientData, projectsData] = await Promise.all([
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 35 |             clientService.getClientById(clientId),
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 36 |             projectService.getProjectsByClient(clientId)
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 37 |         ]);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 38 |         setClient(clientData);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 39 |         setProjects(projectsData);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 40 |     };
+     | ^^^^^^^ `loadData` is declared here
+  41 |
+  42 |     const handleBatchUpload = async (items: { file: File, title: string, clientId: string, revisionLimit: number | null }[]) => {
+  43 |         for (const item of items) {  react-hooks/immutability
+   30:8   warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  105:48  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react/no-unescaped-entities
+  105:60  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react/no-unescaped-entities
+
+/Users/nathanhardy/Documents/Antigravity/src/app/clients/page.tsx
+  16:12  warning  'loadingIds' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  16:24  warning  'setLoadingIds' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  20:13  error    Error: Cannot access variable before it is declared
+
+`loadClients` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/nathanhardy/Documents/Antigravity/src/app/clients/page.tsx:20:13
+  18 |     useEffect(() => {
+  19 |         if (currentUser?.id) {
+> 20 |             loadClients();
+     |             ^^^^^^^^^^^ `loadClients` accessed before it is declared
+  21 |         }
+  22 |     }, [currentUser?.id]);
+  23 |
+
+/Users/nathanhardy/Documents/Antigravity/src/app/clients/page.tsx:24:5
+  22 |     }, [currentUser?.id]);
+  23 |
+> 24 |     const loadClients = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 25 |         if (!currentUser?.id) return;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 26 |         const data = await clientService.getClients(currentUser.id);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 27 |         setClients(data);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |     };
+     | ^^^^^^^ `loadClients` is declared here
+  29 |
+  30 |     const handleCreateClient = async (e: React.FormEvent) => {
+  31 |         e.preventDefault();  react-hooks/immutability
+  22:8   warning  React Hook useEffect has a missing dependency: 'loadClients'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/billing/page.tsx
+   7:17  warning  'Loader' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+   7:40  warning  'CreditCard' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+   7:52  warning  'Calendar' is defined but never used                                                                                           @typescript-eslint/no-unused-vars
+   7:62  warning  'ShieldCheck' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+  10:8   warning  'Link' is defined but never used                                                                                               @typescript-eslint/no-unused-vars
+  25:8   warning  React Hook useEffect has missing dependencies: 'refreshUser' and 'router'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/client/[clientId]/uploads/page.tsx
+  14:11  warning  'router' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  30:13  error    Error: Cannot access variable before it is declared
+
+`loadData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/client/[clientId]/uploads/page.tsx:30:13
+  28 |     useEffect(() => {
+  29 |         if (currentUser && clientId) {
+> 30 |             loadData();
+     |             ^^^^^^^^ `loadData` accessed before it is declared
+  31 |         }
+  32 |     }, [currentUser, clientId]);
+  33 |
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/client/[clientId]/uploads/page.tsx:34:5
+  32 |     }, [currentUser, clientId]);
+  33 |
+> 34 |     const loadData = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 35 |         setLoading(true);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 36 |         const [c, files] = await Promise.all([
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 46 |         setLoading(false);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^
+> 47 |     };
+     | ^^^^^^^ `loadData` is declared here
+  48 |
+  49 |     const handleSaveInstructions = async () => {
+  50 |         setSavingInstr(true);  react-hooks/immutability
+  32:8   warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/comments/page.tsx
+  23:11  warning  'router' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  33:13  error    Error: Cannot access variable before it is declared
+
+`loadInbox` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/comments/page.tsx:33:13
+  31 |         }
+  32 |         if (currentUser) {
+> 33 |             loadInbox();
+     |             ^^^^^^^^^ `loadInbox` accessed before it is declared
+  34 |         }
+  35 |     }, [currentUser, userLoading]);
+  36 |
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/comments/page.tsx:37:5
+  35 |     }, [currentUser, userLoading]);
+  36 |
+> 37 |     const loadInbox = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 38 |         setIsLoading(true);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 39 |         if (currentUser) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 40 |             const data = await projectService.getProjectsWithComments(currentUser.id);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 41 |             setItems(data);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 42 |         }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 43 |         setIsLoading(false);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 44 |     };
+     | ^^^^^^^ `loadInbox` is declared here
+  45 |
+  46 |     if (userLoading || isLoading) {
+  47 |         return (  react-hooks/immutability
+  35:8   warning  React Hook useEffect has a missing dependency: 'loadInbox'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/exhaustive-deps
+  54:11  warning  'unaddressedCount' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/layout.tsx
+  4:8  warning  'Sidebar' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/page.tsx
+   10:8   warning  'RenameModal' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   55:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/nathanhardy/Documents/Antigravity/src/app/dashboard/page.tsx:55:13
+  53 |             clientService.getClientUploads(folderId).then(setClientUploads);
+  54 |         } else {
+> 55 |             setClientUploads([]);
+     |             ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  56 |         }
+  57 |     }, [folderId]);
+  58 |  react-hooks/set-state-in-effect
+  121:11  warning  'handleUpload' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  147:13  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/ban-ts-comment
+  184:21  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/ban-ts-comment
+
+/Users/nathanhardy/Documents/Antigravity/src/app/forgot-password/page.tsx
+  18:19  warning  'res' is assigned a value but never used                         @typescript-eslint/no-unused-vars
+  26:18  warning  'err' is defined but never used                                  @typescript-eslint/no-unused-vars
+  49:52  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/nathanhardy/Documents/Antigravity/src/app/login/page.tsx
+   47:23  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   58:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  133:32  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+/Users/nathanhardy/Documents/Antigravity/src/app/projects/[id]/page.tsx
+    6:8    warning  'Link' is defined but never used                                                                                                                                @typescript-eslint/no-unused-vars
+    7:10   warning  'Lock' is defined but never used                                                                                                                                @typescript-eslint/no-unused-vars
+    7:16   warning  'Unlock' is defined but never used                                                                                                                              @typescript-eslint/no-unused-vars
+    7:24   warning  'Download' is defined but never used                                                                                                                            @typescript-eslint/no-unused-vars
+    7:34   warning  'ArrowLeft' is defined but never used                                                                                                                           @typescript-eslint/no-unused-vars
+    7:45   warning  'ChevronDown' is defined but never used                                                                                                                         @typescript-eslint/no-unused-vars
+    7:58   warning  'ChevronUp' is defined but never used                                                                                                                           @typescript-eslint/no-unused-vars
+    7:69   warning  'Share2' is defined but never used                                                                                                                              @typescript-eslint/no-unused-vars
+    7:77   warning  'Copy' is defined but never used                                                                                                                                @typescript-eslint/no-unused-vars
+    7:83   warning  'RefreshCw' is defined but never used                                                                                                                           @typescript-eslint/no-unused-vars
+    7:94   warning  'Check' is defined but never used                                                                                                                               @typescript-eslint/no-unused-vars
+    7:101  warning  'Upload' is defined but never used                                                                                                                              @typescript-eslint/no-unused-vars
+    8:8    warning  'AudioPlayer' is defined but never used                                                                                                                         @typescript-eslint/no-unused-vars
+    9:8    warning  'CommentSidebar' is defined but never used                                                                                                                      @typescript-eslint/no-unused-vars
+   15:28   warning  'User' is defined but never used                                                                                                                                @typescript-eslint/no-unused-vars
+   16:10   warning  'useAudioShortcuts' is defined but never used                                                                                                                   @typescript-eslint/no-unused-vars
+   18:8    warning  'ClientSharingPanel' is defined but never used                                                                                                                  @typescript-eslint/no-unused-vars
+   30:13   warning  'getProject' is assigned a value but never used                                                                                                                 @typescript-eslint/no-unused-vars
+   31:13   warning  'currentRole' is assigned a value but never used                                                                                                                @typescript-eslint/no-unused-vars
+   89:8    warning  React Hook useEffect has a missing dependency: 'loadProject'. Either include it or remove the dependency array                                                  react-hooks/exhaustive-deps
+  121:8    warning  React Hook useEffect has missing dependencies: 'loadComments', 'loadProject', 'loadRounds', and 'supabase'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  127:8    warning  React Hook useEffect has missing dependencies: 'loadComments' and 'loadRounds'. Either include them or remove the dependency array                              react-hooks/exhaustive-deps
+  195:8    warning  React Hook useEffect has missing dependencies: 'loadComments' and 'shareToken'. Either include them or remove the dependency array                              react-hooks/exhaustive-deps
+  221:27   warning  Unexpected any. Specify a different type                                                                                                                        @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/app/repro/page.tsx
+    5:10  warning  'ProjectVersion' is defined but never used      @typescript-eslint/no-unused-vars
+   26:15  warning  'projectId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  106:21  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/app/reset-password/page.tsx
+  65:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/app/review/[public_id]/page.tsx
+    6:28  warning  'User' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+   60:8   warning  React Hook useEffect has a missing dependency: 'validateSession'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   94:18  warning  'err' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+  130:28  warning  'prev' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+  181:8   warning  React Hook useEffect has a missing dependency: 'refreshProject'. Either include it or remove the dependency array   react-hooks/exhaustive-deps
+  192:8   warning  React Hook useEffect has a missing dependency: 'loadComments'. Either include it or remove the dependency array     react-hooks/exhaustive-deps
+  309:18  warning  'e' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/review/client/[clientId]/uploads/page.tsx
+   5:50  warning  'Loader' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  24:26  warning  'setInstructions' is assigned a value but never used                                                         @typescript-eslint/no-unused-vars
+  44:8   warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  66:18  warning  'e' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/review/folder/[public_id]/page.tsx
+  36:8   warning  React Hook useEffect has a missing dependency: 'validateFolder'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  54:18  warning  'e' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/app/settings/page.tsx
+   93:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/app/share/project/[token]/page.tsx
+  102:17  error    Error: Cannot access variable before it is declared
+
+`setFetchedProject` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/nathanhardy/Documents/Antigravity/src/app/share/project/[token]/page.tsx:102:17
+  100 |                 //    Lets start with Single Project. If sidebar is empty, that's fine.
+  101 |
+> 102 |                 setFetchedProject(project);
+      |                 ^^^^^^^^^^^^^^^^^ `setFetchedProject` accessed before it is declared
+  103 |
+  104 |             } catch (e) {
+  105 |                 setStatus('Error loading project');
+
+/Users/nathanhardy/Documents/Antigravity/src/app/share/project/[token]/page.tsx:112:28
+  110 |     }, [token, setGuestUser]);
+  111 |
+> 112 |     const [fetchedProject, setFetchedProject] = useState<Project | null>(null);
+      |                            ^^^^^^^^^^^^^^^^^ `setFetchedProject` is declared here
+  113 |
+  114 |     if (fetchedProject) {
+  115 |         // Reuse ProjectPage Logic?  react-hooks/immutability
+  104:22  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/components/ActionMenu.tsx
+  17:38  warning  'type' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/components/AudioPlayer.tsx
+   42:12  warning  'isReady' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  135:13  error    Error: Cannot access variable before it is declared
+
+`seekToSeconds` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/nathanhardy/Documents/Antigravity/src/components/AudioPlayer.tsx:135:13
+  133 |         // Interactions -> Seek
+  134 |         ws.on('interaction', (newTime) => {
+> 135 |             seekToSeconds(newTime);
+      |             ^^^^^^^^^^^^^ `seekToSeconds` accessed before it is declared
+  136 |         });
+  137 |
+  138 |         wavesurferRef.current = ws;
+
+/Users/nathanhardy/Documents/Antigravity/src/components/AudioPlayer.tsx:213:5
+  211 |
+  212 |     // -- Seek Control --
+> 213 |     const seekToSeconds = (time: number) => {
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 214 |         const currentVersionId = activeVersionIdRef.current;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 215 |         const audio = audioRefs.current[currentVersionId];
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 224 |         }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 225 |     };
+      | ^^^^^^^ `seekToSeconds` is declared here
+  226 |
+  227 |     useEffect(() => {
+  228 |         if (seekTo) seekToSeconds(seekTo.time);  react-hooks/immutability
+  143:25  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  194:8   warning  React Hook useEffect has missing dependencies: 'currentTime', 'isPlaying', and 'versions'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/exhaustive-deps
+  206:8   warning  React Hook useEffect has a missing dependency: 'activeVersionId'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/exhaustive-deps
+  253:50  error    Error: Cannot access variable before it is declared
+
+`tick` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/nathanhardy/Documents/Antigravity/src/components/AudioPlayer.tsx:253:50
+  251 |         }
+  252 |
+> 253 |         rafIdRef.current = requestAnimationFrame(tick);
+      |                                                  ^^^^ `tick` accessed before it is declared
+  254 |     }, [activeVersionId, isPlaying, onTimeUpdate]);
+  255 |
+  256 |     useEffect(() => {
+
+/Users/nathanhardy/Documents/Antigravity/src/components/AudioPlayer.tsx:233:5
+  231 |
+  232 |     // -- Sync Loop (RAF) --
+> 233 |     const tick = useCallback(() => {
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 234 |         if (!isPlaying) return;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 235 |
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 253 |         rafIdRef.current = requestAnimationFrame(tick);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 254 |     }, [activeVersionId, isPlaying, onTimeUpdate]);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `tick` is declared here
+  255 |
+  256 |     useEffect(() => {
+  257 |         if (isPlaying) {                                                                                                  react-hooks/immutability
+
+/Users/nathanhardy/Documents/Antigravity/src/components/BatchUploadModal.tsx
+    4:18  warning  'CheckCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+    4:31  warning  'AlertCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   46:17  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/nathanhardy/Documents/Antigravity/src/components/BatchUploadModal.tsx:46:17
+  44 |         if (isOpen) {
+  45 |             if (defaultRevisionLimit !== undefined && defaultRevisionLimit !== null) {
+> 46 |                 setIsUnlimited(false);
+     |                 ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  47 |                 setLimit(defaultRevisionLimit);
+  48 |             } else {
+  49 |                 setIsUnlimited(true);                                   react-hooks/set-state-in-effect
+   60:17  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/nathanhardy/Documents/Antigravity/src/components/BatchUploadModal.tsx:60:17
+  58 |             // If not, we wait for user to select in modal.
+  59 |             if (files.length > 0) {
+> 60 |                 setFileMetas(files.map(f => ({
+     |                 ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  61 |                     file: f,
+  62 |                     title: f.name.replace(/\.[^/.]+$/, ""), // Remove extension
+  63 |                     status: 'pending'  react-hooks/set-state-in-effect
+  122:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/components/ClientLayout.tsx
+   9:36  warning  'trialStatus' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  23:40  error    A `require()` style import is forbidden                                                                                                                                                                                                                                                  @typescript-eslint/no-require-imports
+  56:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/nathanhardy/Documents/Antigravity/src/components/CommentSidebar.tsx
+    4:38  warning  'X' is defined but never used                 @typescript-eslint/no-unused-vars
+    4:41  warning  'Save' is defined but never used              @typescript-eslint/no-unused-vars
+  240:11  warning  'canEdit' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/components/FileBrowser.tsx
+    6:18  warning  'Music' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+    6:25  warning  'MoreVertical' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  110:44  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `getFilteredAndSortedItems`, but the source dependencies were [clients, searchQuery, sortMode]. Inferred different dependency than source.
+
+/Users/nathanhardy/Documents/Antigravity/src/components/FileBrowser.tsx:110:44
+  108 |     };
+  109 |
+> 110 |     const processedClients = React.useMemo(() => getFilteredAndSortedItems(clients), [clients, searchQuery, sortMode]);
+      |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Could not preserve existing manual memoization
+  111 |     const processedProjects = React.useMemo(() => getFilteredAndSortedItems(projects), [projects, searchQuery, sortMode]);
+  112 |     const processedUploads = React.useMemo(() => getFilteredAndSortedItems(clientUploads), [clientUploads, searchQuery, sortMode]);
+  113 |                           react-hooks/preserve-manual-memoization
+  110:86  warning  React Hook React.useMemo has a missing dependency: 'getFilteredAndSortedItems'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+  111:45  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `getFilteredAndSortedItems`, but the source dependencies were [projects, searchQuery, sortMode]. Inferred different dependency than source.
+
+/Users/nathanhardy/Documents/Antigravity/src/components/FileBrowser.tsx:111:45
+  109 |
+  110 |     const processedClients = React.useMemo(() => getFilteredAndSortedItems(clients), [clients, searchQuery, sortMode]);
+> 111 |     const processedProjects = React.useMemo(() => getFilteredAndSortedItems(projects), [projects, searchQuery, sortMode]);
+      |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Could not preserve existing manual memoization
+  112 |     const processedUploads = React.useMemo(() => getFilteredAndSortedItems(clientUploads), [clientUploads, searchQuery, sortMode]);
+  113 |
+  114 |                               react-hooks/preserve-manual-memoization
+  111:88  warning  React Hook React.useMemo has a missing dependency: 'getFilteredAndSortedItems'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+  112:44  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `getFilteredAndSortedItems`, but the source dependencies were [clientUploads, searchQuery, sortMode]. Inferred different dependency than source.
+
+/Users/nathanhardy/Documents/Antigravity/src/components/FileBrowser.tsx:112:44
+  110 |     const processedClients = React.useMemo(() => getFilteredAndSortedItems(clients), [clients, searchQuery, sortMode]);
+  111 |     const processedProjects = React.useMemo(() => getFilteredAndSortedItems(projects), [projects, searchQuery, sortMode]);
+> 112 |     const processedUploads = React.useMemo(() => getFilteredAndSortedItems(clientUploads), [clientUploads, searchQuery, sortMode]);
+      |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Could not preserve existing manual memoization
+  113 |
+  114 |
+  115 |     // Start Rename  react-hooks/preserve-manual-memoization
+  112:92  warning  React Hook React.useMemo has a missing dependency: 'getFilteredAndSortedItems'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+
+/Users/nathanhardy/Documents/Antigravity/src/components/FolderShareModal.tsx
+   2:19  warning  'RefreshCw' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   2:45  warning  'LinkIcon' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   2:55  warning  'Lock' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  20:13  error    Error: Cannot access variable before it is declared
+
+`loadStatus` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/nathanhardy/Documents/Antigravity/src/components/FolderShareModal.tsx:20:13
+  18 |     useEffect(() => {
+  19 |         if (isOpen && client) {
+> 20 |             loadStatus();
+     |             ^^^^^^^^^^ `loadStatus` accessed before it is declared
+  21 |         } else {
+  22 |             setLinkData(null);
+  23 |             setError('');
+
+/Users/nathanhardy/Documents/Antigravity/src/components/FolderShareModal.tsx:28:5
+  26 |     }, [isOpen, client]);
+  27 |
+> 28 |     const loadStatus = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 29 |         if (!client) return;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 30 |         setIsLoading(true);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 31 |         const status = await clientService.getFolderLinkStatus(client.id);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 32 |         setLinkData(prev => ({ ...prev, exists: status.exists, expiresAt: status.expiresAt }));
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 33 |         setIsLoading(false);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 34 |     };
+     | ^^^^^^^ `loadStatus` is declared here
+  35 |
+  36 |     const handleEnable = async () => {
+  37 |         if (!client) return;  react-hooks/immutability
+  26:8   warning  React Hook useEffect has a missing dependency: 'loadStatus'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/exhaustive-deps
+
+/Users/nathanhardy/Documents/Antigravity/src/components/MoveToModal.tsx
+  3:10  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/components/ProjectMenu.tsx
+  24:21  error  React Hook "useRef" is called conditionally. React Hooks must be called in the exact same order in every component render     react-hooks/rules-of-hooks
+  33:5   error  React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+
+/Users/nathanhardy/Documents/Antigravity/src/components/ProjectView.tsx
+    5:61  warning  'Share2' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    5:69  warning  'Copy' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    5:75  warning  'RefreshCw' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   67:36  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   95:5   warning  'onToggleLock' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  115:5   warning  'revisionRounds' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  116:5   warning  'activeRound' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  117:5   warning  'onStartRound' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  118:5   warning  'onSubmitRound' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  125:12  warning  'hoveredCommentId' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  125:30  warning  'setHoveredCommentId' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  129:21  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/nathanhardy/Documents/Antigravity/src/components/ProjectView.tsx:129:21
+  127 |     const [showVersionManager, setShowVersionManager] = useState(false);
+  128 |
+> 129 |     useEffect(() => setMounted(true), []);
+      |                     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  130 |
+  131 |
+  132 |     // (lines 102-171 unchanged - skipping for brevity if I could, but I need to be careful with replace)  react-hooks/set-state-in-effect
+  148:11  warning  'currentAudioUrl' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  562:35  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react/no-unescaped-entities
+
+/Users/nathanhardy/Documents/Antigravity/src/components/ReviewSettingsPanel.tsx
+   4:10  warning  'Share2' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  24:13  error    Error: Cannot access variable before it is declared
+
+`loadLinkStatus` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/nathanhardy/Documents/Antigravity/src/components/ReviewSettingsPanel.tsx:24:13
+  22 |     useEffect(() => {
+  23 |         if (project.clientId) {
+> 24 |             loadLinkStatus();
+     |             ^^^^^^^^^^^^^^ `loadLinkStatus` accessed before it is declared
+  25 |         }
+  26 |     }, [project.clientId]);
+  27 |
+
+/Users/nathanhardy/Documents/Antigravity/src/components/ReviewSettingsPanel.tsx:28:5
+  26 |     }, [project.clientId]);
+  27 |
+> 28 |     const loadLinkStatus = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 29 |         if (!project.clientId) return;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 30 |         const status = await clientService.getFolderLinkStatus(project.clientId);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 31 |         setLinkData(status as any);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 32 |     };
+     | ^^^^^^^ `loadLinkStatus` is declared here
+  33 |
+  34 |     const handleToggleReview = async (enabled: boolean) => {
+  35 |         // Optimistic update  react-hooks/immutability
+  26:8   warning  React Hook useEffect has a missing dependency: 'loadLinkStatus'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/exhaustive-deps
+  31:31  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/components/RevisionBar.tsx
+   2:10  warning  'AlertCircle' is defined but never used      @typescript-eslint/no-unused-vars
+   2:49  warning  'Lock' is defined but never used             @typescript-eslint/no-unused-vars
+  25:5   warning  'isActiveVersion' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/components/Sidebar.tsx
+   43:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   57:39  warning  'item' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  105:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/nathanhardy/Documents/Antigravity/src/components/StorageIndicator.tsx
+  6:17  warning  'HardDrive' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/components/VersionSelector.tsx
+   10:5   warning  'DragOverlay' is defined but never used                      @typescript-eslint/no-unused-vars
+   11:5   warning  'defaultDropAnimationSideEffects' is defined but never used  @typescript-eslint/no-unused-vars
+   12:5   warning  'DropAnimation' is defined but never used                    @typescript-eslint/no-unused-vars
+  102:5   warning  'latestVersionId' is defined but never used                  @typescript-eslint/no-unused-vars
+  190:42  warning  'index' is defined but never used                            @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/components/landing/HeroDemoPlayer.tsx
+   13:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   46:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  159:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/components/landing/HowItWorksSection.tsx
+  30:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  58:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/nathanhardy/Documents/Antigravity/src/context/UserContext.tsx
+   12:66  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+   13:81  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+   38:46  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  121:8   warning  React Hook useEffect has a missing dependency: 'refreshUser'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  225:14  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/scripts/debug_delete.ts
+  45:20  warning  'delErr' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/nathanhardy/Documents/Antigravity/src/services/billingService.ts
+  75:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  86:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/services/clientService.ts
+  116:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/services/projectService.ts
+   88:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  189:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  236:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  285:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  604:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  836:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  836:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/nathanhardy/Documents/Antigravity/src/utils/supabase/server.ts
+  20:30  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 197 problems (27 errors, 170 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

@@ -48,6 +48,9 @@ export default function ProjectPage() {
     const [revisionRounds, setRevisionRounds] = useState<RevisionRound[]>([]);
     const [activeRound, setActiveRound] = useState<RevisionRound | null>(null);
 
+    // Tracks IDs of comments we just added but haven't seen from server poll yet
+    const freshlyAddedIds = useRef<Set<string>>(new Set());
+
     const supabase = createClient();
 
     const loadProject = async () => {
@@ -74,10 +77,6 @@ export default function ProjectPage() {
         }
 
         // Regular Auth Access
-        // We always fetch fresh to ensure we have latest structure (versions sorted)
-        // But we can check cache first for instant load if needed.
-        // For simplicity and correctness with RLS/Sorting, let's fetch.
-        // Regular Auth Access
         if (!project) setLoadingProject(true);
         const fullP = await projectService.getProjectById(id);
         setProject(fullP);
@@ -97,17 +96,22 @@ export default function ProjectPage() {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'projects', filter: `id=eq.${id}` },
-                () => loadProject()
+                () => { loadProject(); }
             )
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'project_versions', filter: `project_id=eq.${id}` },
-                () => loadProject()
+                () => { loadProject(); }
             )
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'revision_rounds', filter: `project_id=eq.${id}` },
-                () => loadRounds()
+                () => { loadRounds(); }
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'comments', filter: `project_id=eq.${id}` },
+                () => { loadComments(); }
             )
             .subscribe();
 
@@ -138,18 +142,25 @@ export default function ProjectPage() {
 
         setComments(prev => {
             const serverComments = data || [];
-            // Preserve optimistic comments that aren't yet in the server list
-            const optimisticComments = prev.filter(c =>
-                String(c.id).startsWith('temp-') &&
-                !serverComments.some(s => {
-                    // Fuzzy timestamp match (within 0.1s)
-                    const timeMatch = Math.abs(s.timestamp - c.timestamp) < 0.1;
-                    const contentMatch = s.content === c.content;
-                    const authorMatch = (s.authorId === c.authorId || s.authorUserId === c.authorUserId);
-                    return timeMatch && contentMatch && authorMatch;
-                })
+
+            // 1. Preserve optimistic (temp) comments
+            const optimisticComments = prev.filter(c => String(c.id).startsWith('temp-'));
+
+            // 2. Preserve locally added comments that server might have missed in a race
+            // (Only if they are not already in serverComments)
+            const locallyAddedButMissing = prev.filter(c =>
+                freshlyAddedIds.current.has(c.id) &&
+                !serverComments.some(sc => sc.id === c.id)
             );
-            return [...serverComments, ...optimisticComments];
+
+            // Cleanup freshlyAddedIds for those that ARE in serverComments now
+            serverComments.forEach(sc => {
+                if (freshlyAddedIds.current.has(sc.id)) {
+                    freshlyAddedIds.current.delete(sc.id);
+                }
+            });
+
+            return [...serverComments, ...locallyAddedButMissing, ...optimisticComments];
         });
     };
 
@@ -161,9 +172,6 @@ export default function ProjectPage() {
         }
         const rounds = await projectService.getRevisionRounds(selectedVersionId);
         setRevisionRounds(rounds);
-        // Active round is the first one if it's not completed? Or just the latest?
-        // Logic: If latest round is NOT completed, it is the active one.
-        // Or simplified: Just the latest one.
         if (rounds.length > 0) {
             setActiveRound(rounds[0]);
         } else {
@@ -233,7 +241,10 @@ export default function ProjectPage() {
         try {
             const added = await projectService.addComment(newComment);
             if (added) {
-                // Replace temp with real, but check if real already came in via polling/subscription
+                // Track this ID as locally added to prevent flicker on subsequent polls
+                freshlyAddedIds.current.add(added.id);
+
+                // Replace temp with real
                 setComments(prev => {
                     const exists = prev.some(c => c.id === added.id);
                     if (exists) {
@@ -312,7 +323,7 @@ export default function ProjectPage() {
         try {
             const url = await projectService.uploadFile(file);
             if (url) {
-                const ver = await projectService.createVersion(project.id, url, project.engineerId);
+                const ver = await projectService.createVersion(project.id, url, project.engineerId, file.name);
                 if (ver) {
                     alert('New version uploaded!');
                     window.location.reload();
@@ -368,7 +379,14 @@ export default function ProjectPage() {
         if (!project) return;
 
         // Optimistic update
-        setProject(prev => prev ? { ...prev, versions: newOrder } : null);
+        // CRITICAL: Must update displayOrder property on objects too, 
+        // otherwise downstream components that sort by displayOrder will revert to old order.
+        const optimisticVersions = newOrder.map((v, index) => ({
+            ...v,
+            displayOrder: index
+        }));
+
+        setProject(prev => prev ? { ...prev, versions: optimisticVersions } : null);
 
         const ids = newOrder.map(v => v.id);
         const success = await projectService.reorderVersions(project.id, ids);

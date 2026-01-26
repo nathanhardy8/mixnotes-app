@@ -13,8 +13,9 @@ export default function StorageIndicator({ totalUsedBytes }: StorageIndicatorPro
     const { currentUser } = useUser();
     const isAdmin = currentUser?.role === 'admin';
 
-    // Default Limit: 2TB (2 * 1024^4)
-    const LIMIT_BYTES = 2 * 1024 * 1024 * 1024 * 1024;
+    // Default Limit: 50GB (Basic)
+    const DEFAULT_LIMIT = 50 * 1024 * 1024 * 1024;
+    const LIMIT_BYTES = currentUser?.subscription?.quotaBytes || DEFAULT_LIMIT;
 
     // Admin: Infinite or visual mock
     const effectiveLimit = isAdmin ? LIMIT_BYTES : LIMIT_BYTES;
@@ -38,7 +39,7 @@ export default function StorageIndicator({ totalUsedBytes }: StorageIndicatorPro
                 <div className={styles.textContainer}>
                     <span className={styles.label}>Storage</span>
                     <span className={styles.usage}>
-                        {formatBytes(totalUsedBytes)} of {isAdmin ? 'Unlimited' : '2 TB'} used
+                        {formatBytes(totalUsedBytes)} of {isAdmin ? 'Unlimited' : formatBytes(effectiveLimit)} used
                     </span>
                 </div>
             </div>

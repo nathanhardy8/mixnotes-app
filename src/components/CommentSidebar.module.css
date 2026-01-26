@@ -57,7 +57,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 1rem;
+    padding: 0.6rem;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -79,30 +79,30 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .author {
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--foreground);
 }
 
 .timeTag {
     background: #eff6ff;
     color: var(--primary);
-    padding: 2px 8px;
+    padding: 1px 6px;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     font-family: var(--font-geist-mono);
 }
 
 .commentContent {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: #4b5563;
-    line-height: 1.5;
-    margin: 0.5rem 0 0 0;
+    line-height: 1.4;
+    margin: 0.25rem 0 0 0;
 }
 
 .inputArea {

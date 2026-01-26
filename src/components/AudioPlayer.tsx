@@ -44,6 +44,25 @@ const AudioPlayer = memo(function AudioPlayer({
     // Sync Loop Ref
     const rafIdRef = useRef<number | null>(null);
 
+    // Track active version for stale closures
+    const activeVersionIdRef = useRef(activeVersionId);
+    useEffect(() => { activeVersionIdRef.current = activeVersionId; }, [activeVersionId]);
+
+    // -- Seek Control --
+    const seekToSeconds = (time: number) => {
+        const currentVersionId = activeVersionIdRef.current;
+        const audio = audioRefs.current[currentVersionId];
+        if (!audio) return;
+
+        const safeTime = Math.max(0, Math.min(time, audio.duration || 0));
+        audio.currentTime = safeTime;
+        setCurrentTime(safeTime);
+
+        if (wavesurferRef.current) {
+            wavesurferRef.current.setTime(safeTime);
+        }
+    };
+
     // -- Initialize / Sync Audio Elements --
     useEffect(() => {
         // 1. Add New
@@ -205,24 +224,6 @@ const AudioPlayer = memo(function AudioPlayer({
         }
     }, [isPlaying]);
 
-    // Track active version for stale closures
-    const activeVersionIdRef = useRef(activeVersionId);
-    useEffect(() => { activeVersionIdRef.current = activeVersionId; }, [activeVersionId]);
-
-    // -- Seek Control --
-    const seekToSeconds = (time: number) => {
-        const currentVersionId = activeVersionIdRef.current;
-        const audio = audioRefs.current[currentVersionId];
-        if (!audio) return;
-
-        const safeTime = Math.max(0, Math.min(time, audio.duration || 0));
-        audio.currentTime = safeTime;
-        setCurrentTime(safeTime);
-
-        if (wavesurferRef.current) {
-            wavesurferRef.current.setTime(safeTime);
-        }
-    };
 
     useEffect(() => {
         if (seekTo) seekToSeconds(seekTo.time);
@@ -230,37 +231,32 @@ const AudioPlayer = memo(function AudioPlayer({
 
 
     // -- Sync Loop (RAF) --
-    const tick = useCallback(() => {
+    useEffect(() => {
         if (!isPlaying) return;
 
-        const audio = audioRefs.current[activeVersionId];
-        if (audio) {
-            const t = audio.currentTime;
-            setCurrentTime(t);
-            onTimeUpdate?.(t);
+        const tick = () => {
+            const audio = audioRefs.current[activeVersionId];
+            if (audio) {
+                const t = audio.currentTime;
+                setCurrentTime(t);
+                onTimeUpdate?.(t);
 
-            // Sync Visuals
-            if (wavesurferRef.current) {
-                // Only seek if significantly diff to avoid jitter?
-                // WaveSurfer setTime is visual seek.
-                const diff = Math.abs(wavesurferRef.current.getCurrentTime() - t);
-                if (diff > 0.1) {
-                    wavesurferRef.current.setTime(t);
+                // Sync Visuals
+                if (wavesurferRef.current) {
+                    // Only seek if significantly diff to avoid jitter?
+                    // WaveSurfer setTime is visual seek.
+                    const diff = Math.abs(wavesurferRef.current.getCurrentTime() - t);
+                    if (diff > 0.1) {
+                        wavesurferRef.current.setTime(t);
+                    }
                 }
             }
-        }
+            rafIdRef.current = requestAnimationFrame(tick);
+        };
 
         rafIdRef.current = requestAnimationFrame(tick);
-    }, [activeVersionId, isPlaying, onTimeUpdate]);
-
-    useEffect(() => {
-        if (isPlaying) {
-            rafIdRef.current = requestAnimationFrame(tick);
-        } else {
-            if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-        }
         return () => { if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current); };
-    }, [isPlaying, tick]);
+    }, [activeVersionId, isPlaying, onTimeUpdate]);
 
 
     const togglePlay = () => onPlayPause(!isPlaying);
@@ -285,6 +281,8 @@ const AudioPlayer = memo(function AudioPlayer({
                     if (leftPercent < 0 || leftPercent > 100) return null;
                     const isHighlighted = highlightedCommentId === comment.id;
 
+                    const initial = comment.authorName ? comment.authorName.trim().charAt(0).toUpperCase() : '?';
+
                     return (
                         <div
                             key={comment.id}
@@ -293,8 +291,11 @@ const AudioPlayer = memo(function AudioPlayer({
                             onClick={(e) => { e.stopPropagation(); onMarkerClick?.(comment.id); }}
                             onMouseEnter={() => onMarkerHover?.(comment.id)}
                             onMouseLeave={() => onMarkerHover?.(null)}
+                            title={`${comment.authorName || 'Unknown'}: ${comment.content}`} // Native tooltip fallback
                         >
-                            <div className={styles.markerPin} style={{ backgroundColor: baseColor, boxShadow: isHighlighted ? '0 0 10px white' : undefined }} />
+                            <div className={styles.markerPin} style={{ backgroundColor: baseColor, boxShadow: isHighlighted ? '0 0 10px white' : undefined }}>
+                                {initial}
+                            </div>
                         </div>
                     );
                 })}

@@ -15,6 +15,14 @@ export default function FolderShareModal({ isOpen, onClose, client }: FolderShar
     const [copied, setCopied] = useState(false);
     const [error, setError] = useState('');
 
+    const loadStatus = async () => {
+        if (!client) return;
+        setIsLoading(true);
+        const status = await clientService.getFolderLinkStatus(client.id);
+        setLinkData(prev => ({ ...prev, exists: status.exists, expiresAt: status.expiresAt }));
+        setIsLoading(false);
+    };
+
     useEffect(() => {
         if (isOpen && client) {
             loadStatus();
@@ -24,14 +32,6 @@ export default function FolderShareModal({ isOpen, onClose, client }: FolderShar
             setCopied(false);
         }
     }, [isOpen, client]);
-
-    const loadStatus = async () => {
-        if (!client) return;
-        setIsLoading(true);
-        const status = await clientService.getFolderLinkStatus(client.id);
-        setLinkData(prev => ({ ...prev, exists: status.exists, expiresAt: status.expiresAt }));
-        setIsLoading(false);
-    };
 
     const handleEnable = async () => {
         if (!client) return;

@@ -15,17 +15,17 @@ export default function ClientsPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
 
-    useEffect(() => {
-        if (currentUser?.id) {
-            loadClients();
-        }
-    }, [currentUser?.id]);
-
     const loadClients = async () => {
         if (!currentUser?.id) return;
         const data = await clientService.getClients(currentUser.id);
         setClients(data);
     };
+
+    useEffect(() => {
+        if (currentUser?.id) {
+            loadClients();
+        }
+    }, [currentUser?.id]);
 
     const handleCreateClient = async (e: React.FormEvent) => {
         e.preventDefault();

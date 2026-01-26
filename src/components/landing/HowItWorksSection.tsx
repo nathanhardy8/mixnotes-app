@@ -39,7 +39,7 @@ export default function HowItWorksSection() {
                     <div className={styles.splitContent}>
                         <h2 className={styles.headingLg}>For Artists: Clear & Easy Feedback</h2>
                         <p className={styles.subheading}>
-                            No more typing "at 2:43 the snare is too loud". Just click on the waveform and type.
+                            No more typing &quot;at 2:43 the snare is too loud&quot;. Just click on the waveform and type.
                             Listen on your phone, tablet, or studio monitors.
                         </p>
                         <ul style={{ listStyle: 'none', padding: 0, color: '#ffffff' }}>

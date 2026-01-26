@@ -80,8 +80,17 @@ function SortableTab({
                 if (!isDragging) onSelect(version.id);
             }}
         >
-            {label}
-            {isActive && <span className={styles.badge}>Current</span>}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{label}</span>
+                    {isActive && <span className={styles.badge}>Current</span>}
+                </div>
+                {version.originalFilename && (
+                    <span style={{ fontSize: '0.7rem', color: '#666', fontWeight: 400, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {version.originalFilename}
+                    </span>
+                )}
+            </div>
         </button>
     );
 }
@@ -97,14 +106,39 @@ export default function VersionSelector({
     // Local state for optimistic UI updates
     const [items, setItems] = useState(versions);
     const [isDragging, setIsDragging] = useState(false);
+    const [isCompact, setIsCompact] = useState(false);
+    const containerRef = React.useRef<HTMLDivElement>(null);
 
     // Sync local state when props change, but NOT if we are dragging
     useEffect(() => {
         if (!isDragging) {
             const sorted = [...versions].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setItems(sorted);
         }
     }, [versions, isDragging]);
+
+    // Intelligent Scaling Logic
+    useEffect(() => {
+        const checkSize = () => {
+            if (containerRef.current) {
+                const containerWidth = containerRef.current.offsetWidth;
+                const tabCount = items.length;
+                // Heuristic: If we have less than 120px per tab, switch to compact mode
+                // "Version 10" takes about 100-110px with padding.
+                // "V10" takes about 50-60px.
+                setIsCompact(containerWidth / tabCount < 120);
+            }
+        };
+
+        const observer = new ResizeObserver(checkSize);
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+            checkSize(); // Initial check
+        }
+
+        return () => observer.disconnect();
+    }, [items.length]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -141,7 +175,7 @@ export default function VersionSelector({
     };
 
     return (
-        <div className={styles.container}>
+        <div className={styles.container} ref={containerRef}>
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -153,9 +187,12 @@ export default function VersionSelector({
                     items={items.map(v => v.id)}
                     strategy={horizontalListSortingStrategy}
                 >
-                    {items.map((version) => {
+                    {items.map((version, index) => {
                         const isActive = activeVersionId === version.id;
-                        const label = version.displayName || `Version ${version.versionNumber}`;
+                        // Abbreviation Logic: "Version N" -> "VN"
+                        const fullLabel = version.displayName || `Version ${version.versionNumber}`;
+                        const compactLabel = version.displayName ? version.displayName : `V${version.versionNumber}`;
+                        const label = isCompact ? compactLabel : fullLabel;
 
                         return (
                             <SortableTab

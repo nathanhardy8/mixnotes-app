@@ -101,24 +101,25 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: #f8fafc;
-    /* White/Off-white for contrast on dark */
-    color: #0f172a;
-    /* Slate 900 */
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    /* Blue gradient */
+    color: #ffffff;
     font-weight: 600;
     padding: 0.875rem 2rem;
     border-radius: 6px;
     /* Matched radius */
     font-size: 1.125rem;
     transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+    /* Blue glow */
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btnPrimary:hover {
-    background-color: #e2e8f0;
-    /* Slate 200 */
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    /* Darker blue gradient */
     transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5);
 }
 
 .btnSecondary {
@@ -276,15 +277,31 @@
     background: linear-gradient(to bottom, #0f172a, #1e293b);
 }
 
+.pricingGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    max-width: 900px;
+    margin: 3rem auto 0;
+    align-items: stretch;
+}
+
 .pricingCard {
     background: #1e293b;
-    border: 1px solid var(--primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    padding: 3rem;
-    max-width: 400px;
-    margin: 3rem auto 0;
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+    padding: 3rem 2rem;
+    width: 100%;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.pricingCard:hover {
+    transform: translateY(-5px);
+    border-color: rgba(59, 130, 246, 0.5);
 }
 
 @media (max-width: 768px) {

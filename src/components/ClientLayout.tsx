@@ -4,6 +4,7 @@ import React from 'react';
 import Sidebar from '@/components/Sidebar';
 import { useUser } from '@/context/UserContext';
 import { usePathname, useRouter } from 'next/navigation';
+import { billingService } from '@/services/billingService';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const { viewMode, currentUser, trialStatus } = useUser();
@@ -20,7 +21,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         if (currentUser) {
             // Use centralized access check
             // Note: We dynamically import or use the service logic
-            const { billingService } = require('@/services/billingService');
+            // Use centralized access check
+            // Note: We dynamically import or use the service logic
             const access = billingService.checkAccess(currentUser);
 
             if (!access.allowed && access.reason !== 'inactive') {

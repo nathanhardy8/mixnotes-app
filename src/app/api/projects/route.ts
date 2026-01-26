@@ -72,7 +72,8 @@ export async function POST(request: Request) {
             project_id: projectData.id,
             version_number: 1,
             audio_url: audioUrl,
-            created_by_user_id: user.id
+            created_by_user_id: user.id,
+            original_filename: body.originalFilename
         }]);
     }
 

@@ -119,6 +119,15 @@ export default function Dashboard() {
     // Handlers
     // Handlers
     const handleUpload = async (title: string, file: File, revisionLimit: number | null) => {
+        // Quota Check
+        const limitBytes = currentUser?.subscription?.quotaBytes || 53687091200; // 50GB
+        if (totalUsedBytes + file.size > limitBytes) {
+            if (confirm("Storage limit exceeded. Upgrade to PRO for more storage?")) {
+                router.push('/dashboard/billing');
+            }
+            return;
+        }
+
         const audioUrl = await projectService.uploadFile(file, 'projects');
         if (!audioUrl) {
             alert('Failed to upload audio file.');
@@ -134,7 +143,9 @@ export default function Dashboard() {
             price: 0,
             sizeBytes: file.size,
             clientId: folderId || undefined, // Assign to current folder if open
-            revisionLimit: revisionLimit
+            revisionLimit: revisionLimit,
+            // @ts-ignore - Pass originalFilename for API
+            originalFilename: file.name
         };
 
         await addProject(newProject);
@@ -142,6 +153,17 @@ export default function Dashboard() {
     };
 
     const handleBatchUpload = async (items: { file: File, title: string, clientId: string }[]) => {
+        // Quota Check
+        const limitBytes = currentUser?.subscription?.quotaBytes || 53687091200; // 50GB
+        const batchSize = items.reduce((acc, item) => acc + item.file.size, 0);
+
+        if (totalUsedBytes + batchSize > limitBytes) {
+            if (confirm("Storage limit exceeded. Upgrade to PRO for more storage?")) {
+                router.push('/dashboard/billing');
+            }
+            return;
+        }
+
         // Process sequentially to be safe, or parallel? 
         // Parallel is fine for uploads usually, but `addProject` updates context.
         // Let's do parallel uploads -> sequential DB inserts.
@@ -158,7 +180,9 @@ export default function Dashboard() {
                     price: 0,
                     sizeBytes: item.file.size,
                     clientId: item.clientId,
-                    revisionLimit: (currentUser?.defaultRevisionLimit === null || currentUser?.defaultRevisionLimit === undefined) ? null : currentUser.defaultRevisionLimit
+                    revisionLimit: (currentUser?.defaultRevisionLimit === null || currentUser?.defaultRevisionLimit === undefined) ? null : currentUser.defaultRevisionLimit,
+                    // @ts-ignore - Pass originalFilename for API
+                    originalFilename: item.file.name
                 };
                 await addProject(newProject);
             }
@@ -308,6 +332,15 @@ export default function Dashboard() {
 
     const handleClientFileUpload = async (file: File) => {
         if (!folderId) return;
+
+        // Quota Check
+        const limitBytes = currentUser?.subscription?.quotaBytes || 53687091200; // 50GB
+        if (totalUsedBytes + file.size > limitBytes) {
+            if (confirm("Storage limit exceeded. Upgrade to PRO for more storage?")) {
+                router.push('/dashboard/billing');
+            }
+            return;
+        }
 
         // 1. Upload to Storage
         const storageKey = `${folderId}/${Date.now()}_${file.name}`;

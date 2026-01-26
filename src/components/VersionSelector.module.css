@@ -2,16 +2,15 @@
     display: flex;
     align-items: flex-end;
     /* Align tabs to bottom */
-    gap: 0.5rem;
-    /* Gap between tabs */
+    gap: 0.25rem;
+    /* Tighter gap */
     margin-bottom: 0;
-    overflow-x: auto;
+    overflow: hidden;
+    /* No scrolling, force shrink */
     white-space: nowrap;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
     background: transparent;
     padding-bottom: 0;
-    /* No padding at bottom */
+    width: 100%;
 }
 
 .container::-webkit-scrollbar {
@@ -20,8 +19,8 @@
 
 .tab {
     position: relative;
-    padding: 0.75rem 1.25rem;
-    /* Typical tab padding */
+    padding: 0.5rem 1rem;
+    height: auto;
     background: transparent;
     border: 1px solid transparent;
     color: var(--foreground-muted);
@@ -31,13 +30,17 @@
     transition: all 0.15s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     border-radius: 8px 8px 0 0;
-    /* Rounded top */
     margin-bottom: 0px;
     top: 1px;
-    /* Push down slightly to align? No, marginBottom on container handles overlap. 
-               Actually, if marginBottom is -1px, tabs overlap the border. */
+    flex: 1 1 auto;
+    /* Grow and shrink */
+    min-width: 40px;
+    /* Minimum touch target */
+    max-width: 200px;
+    /* Max width */
+    overflow: hidden;
 }
 
 .tab:hover {

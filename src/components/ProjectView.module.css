@@ -375,29 +375,38 @@ input:checked+.slider:before {
 
 /* Engineer Section Collapsible - Matching CommentSidebar.container */
 /* Engineer Section Collapsible - Minimalist Refactor */
+/* Engineer Section Collapsible - Minimalist Bubble Refactor */
 .engineerSection {
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    padding: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
     margin-bottom: 2rem;
     display: flex;
     flex-direction: column;
     gap: 0;
     box-shadow: none;
+    overflow: visible;
 }
 
 .engineerHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+    /* No border bottom until expanded? Or keep minimal. Let's keep minimal. */
+    border-bottom: none;
     cursor: pointer;
     background: transparent;
-    margin-bottom: 1rem;
+    margin-bottom: 0;
+    /* Tightness when collapsed */
     transition: opacity 0.2s;
-    opacity: 0.6;
+    opacity: 1;
+    /* Always visible */
+}
+
+.engineerHeader:hover span {
+    color: var(--foreground);
 }
 
 .engineerHeader:hover {
@@ -414,10 +423,14 @@ input:checked+.slider:before {
 
 .engineerContent {
     padding: 0;
+    margin-top: 1rem;
+    /* Spacing when expanded */
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    /* Tight vertical spacing */
+    gap: 0;
+    /* Removed gap, controlled by borders/padding */
+    border-top: none;
+    padding-top: 0;
 }
 
 /* Inner Cards -> Minimal Rows */

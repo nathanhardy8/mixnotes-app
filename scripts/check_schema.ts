@@ -14,7 +14,7 @@ async function checkSchema() {
     // We can't query information_schema easily via JS client usually, 
     // but we can try to select one row and see keys.
     const { data, error } = await supabase
-        .from('project_versions')
+        .from('comments')
         .select('*')
         .limit(1);
 

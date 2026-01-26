@@ -23,12 +23,6 @@ export default function ClientDetailsPage({ params }: { params: Promise<{ client
         params.then(p => setClientId(p.clientId));
     }, [params]);
 
-    useEffect(() => {
-        if (currentUser?.id && clientId) {
-            loadData();
-        }
-    }, [currentUser?.id, clientId]);
-
     const loadData = async () => {
         if (!clientId) return;
         const [clientData, projectsData] = await Promise.all([
@@ -38,6 +32,12 @@ export default function ClientDetailsPage({ params }: { params: Promise<{ client
         setClient(clientData);
         setProjects(projectsData);
     };
+
+    useEffect(() => {
+        if (currentUser?.id && clientId) {
+            loadData();
+        }
+    }, [currentUser?.id, clientId]);
 
     const handleBatchUpload = async (items: { file: File, title: string, clientId: string, revisionLimit: number | null }[]) => {
         for (const item of items) {
@@ -102,7 +102,7 @@ export default function ClientDetailsPage({ params }: { params: Promise<{ client
 
                 {projects.length === 0 && (
                     <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#64748b', padding: '2rem' }}>
-                        No projects yet. Click "New Project" to start.
+                        No projects yet. Click &quot;New Project&quot; to start.
                     </div>
                 )}
             </div>

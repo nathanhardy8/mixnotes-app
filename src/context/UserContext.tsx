@@ -73,7 +73,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 trialEndAt: sub.trial_end_at,
                 trialUsed: sub.trial_used,
                 createdAt: sub.created_at,
-                updatedAt: sub.updated_at
+                updatedAt: sub.updated_at,
+                plan: sub.plan,
+                quotaBytes: sub.quota_bytes,
+                hasAiMixAssistant: sub.has_ai_mix_assistant
             };
         }
 
@@ -107,6 +110,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         refreshUser();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -114,17 +118,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         });
 
         return () => subscription.unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        refreshUser();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            refreshUser(session?.user);
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
+    }, [supabase]);
 
     const login = async (email: string, password: string) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });

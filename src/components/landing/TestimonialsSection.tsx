@@ -4,7 +4,7 @@ import styles from './styles.module.css';
 const TestimonialCard = ({ quote, author, role }: { quote: string, author: string, role: string }) => (
     <div style={{ background: '#1e293b', padding: '2rem', borderRadius: '12px', border: '1px solid #334155' }}>
         <p style={{ fontSize: '1.1rem', fontStyle: 'italic', marginBottom: '1.5rem', color: '#cbd5e1' }}>
-            "{quote}"
+            &quot;{quote}&quot;
         </p>
         <div>
             <div style={{ fontWeight: 'bold', color: 'white' }}>{author}</div>

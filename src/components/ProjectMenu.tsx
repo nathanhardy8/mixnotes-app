@@ -15,13 +15,13 @@ interface ProjectMenuProps {
 
 export default function ProjectMenu({ project, onRename, onMove, onDelete }: ProjectMenuProps) {
     const { currentUser } = useUser();
+    const menuRef = useRef<HTMLDivElement>(null);
     const [isOpen, setIsOpen] = useState(false);
 
     // Security: Only engineers can see this menu
     if (currentUser?.role !== 'engineer') {
         return null;
     }
-    const menuRef = useRef<HTMLDivElement>(null);
 
     const toggleMenu = (e: React.MouseEvent) => {
         e.preventDefault();

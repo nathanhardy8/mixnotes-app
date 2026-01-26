@@ -182,6 +182,7 @@ export default function CommentSidebar({
                         isGuest={isGuest}
                         formatTime={formatTime}
                         onUpdateStatus={onUpdateStatus}
+                        onInputFocus={onInputFocus}
                     />
                 ))}
             </div>
@@ -208,6 +209,7 @@ interface CommentItemProps {
     isGuest: boolean;
     formatTime: (t: number) => string;
     onUpdateStatus?: (commentId: string, updates: { status?: 'open' | 'resolved', needsClarification?: boolean }) => void;
+    onInputFocus?: () => void;
 }
 
 function CommentItem({
@@ -225,7 +227,8 @@ function CommentItem({
     guestName,
     isGuest,
     formatTime,
-    onUpdateStatus
+    onUpdateStatus,
+    onInputFocus
 }: CommentItemProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(node.content);
@@ -280,13 +283,8 @@ function CommentItem({
     };
 
     // Helper to get display name
-    const authorDisplayName = node.authorName ? (
-        <>
-            {node.authorName}
-            {node.authorType === 'ENGINEER' && <span style={{ opacity: 0.5, fontSize: '0.8em', marginLeft: '4px' }}> (Engineer)</span>}
-        </>
-    ) : (
-        node.authorType === 'ENGINEER' ? 'Engineer' : 'Client' // Simplified fallback
+    const authorDisplayName = node.authorName || (
+        node.authorType === 'ENGINEER' ? 'Engineer' : 'Client'
     );
 
 
@@ -369,6 +367,7 @@ function CommentItem({
                             value={editContent}
                             onChange={e => setEditContent(e.target.value)}
                             rows={2}
+                            onFocus={onInputFocus}
                             autoFocus
                         />
                         <div className={styles.editActions}>
@@ -393,6 +392,7 @@ function CommentItem({
                         className={styles.replyInput}
                         value={replyContent}
                         onChange={e => setReplyContent(e.target.value)}
+                        onFocus={onInputFocus} // Added handler
                         autoFocus
                         disabled={isSubmitting}
                     />
@@ -423,6 +423,7 @@ function CommentItem({
                             isGuest={isGuest}
                             formatTime={formatTime}
                             onUpdateStatus={onUpdateStatus}
+                            onInputFocus={onInputFocus}
                         />
                     ))}
                 </div>

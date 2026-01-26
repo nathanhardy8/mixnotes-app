@@ -1,0 +1,50 @@
+.container {
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background-color: var(--surface);
+    /* or a slightly different tint if needed, e.g. #f8fafc */
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    /* Consistent with other cards */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.titleGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin: 0;
+}
+
+.badge {
+    background-color: var(--surface-active);
+    /* or e2e8f0 */
+    color: var(--foreground-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.02em;
+    border: 1px solid var(--border);
+}
+
+.description {
+    font-size: 0.9rem;
+    color: var(--foreground-secondary);
+    margin: 0;
+    line-height: 1.5;
+}

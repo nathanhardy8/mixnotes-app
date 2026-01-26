@@ -10,9 +10,10 @@ import styles from '@/app/projects/[id]/styles.module.css';
 interface ClientSharingPanelProps {
     project: Project;
     onUpdate: (updates: Partial<Project>) => void;
+    transparent?: boolean;
 }
 
-export default function ClientSharingPanel({ project, onUpdate }: ClientSharingPanelProps) {
+export default function ClientSharingPanel({ project, onUpdate, transparent }: ClientSharingPanelProps) {
     const [loadingLink, setLoadingLink] = useState(false);
     const [linkData, setLinkData] = useState<{ url?: string; exists: boolean } | null>(null);
     const [copied, setCopied] = useState(false);
@@ -59,7 +60,7 @@ export default function ClientSharingPanel({ project, onUpdate }: ClientSharingP
     };
 
     return (
-        <div className={styles.sidebarCard}>
+        <div className={transparent ? '' : styles.sidebarCard} style={transparent ? { padding: '0.75rem 0', borderBottom: '1px solid var(--surface-active)' } : undefined}>
             <div className={styles.controlRow}>
                 <div className={styles.sidebarCardTitle}>Comments & Review</div>
                 <label className={styles.toggleSwitch} style={{ transform: 'scale(0.9)', transformOrigin: 'right center' }}>
@@ -71,14 +72,7 @@ export default function ClientSharingPanel({ project, onUpdate }: ClientSharingP
                     <span className={styles.slider}></span>
                 </label>
             </div>
-            <div style={{
-                fontSize: '0.75rem',
-                color: project.approvalStatus === 'APPROVED' ? '#10b981' : 'var(--foreground-muted)',
-                marginBottom: '0.5rem',
-                display: 'flex', alignItems: 'center', gap: '4px'
-            }}>
-                Status: <span style={{ fontWeight: 600 }}>{project.approvalStatus || 'PENDING'}</span> {project.approvalStatus === 'APPROVED' && '✅'}
-            </div>
+
 
 
 
