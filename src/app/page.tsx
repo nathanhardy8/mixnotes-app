@@ -7,10 +7,13 @@ import FinalCTASection from '@/components/landing/FinalCTASection';
 import Footer from '@/components/landing/Footer';
 import styles from '@/components/landing/styles.module.css';
 
+import ShaderBackground from '@/components/ui/shader-background.client';
+
 export default function Home() {
   return (
     <div className={styles.landingWrapper}>
-      <main>
+      <ShaderBackground />
+      <main className="relative z-10 w-full min-h-screen">
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />

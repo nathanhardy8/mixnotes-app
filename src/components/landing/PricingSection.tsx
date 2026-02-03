@@ -37,8 +37,8 @@ export default function PricingSection() {
                             </div>
                         </div>
 
-                        <Link href="/login?view=signup" className={styles.btnPrimary} style={{ width: '100%' }}>
-                            Start 1-Month Free Trial
+                        <Link href="/signup" className={styles.btnPrimary} style={{ width: '100%' }}>
+                            Start Free 1-Month Trial
                         </Link>
                         <p style={{ marginTop: '1rem', color: '#94a3b8', fontSize: '0.85rem' }}>
                             Cancel anytime
@@ -46,13 +46,13 @@ export default function PricingSection() {
                     </div>
 
                     {/* PRO Plan */}
-                    <div className={styles.pricingCard} style={{ opacity: 0.8, borderColor: 'rgba(255,255,255,0.05)' }}>
+                    <div className={styles.pricingCard} style={{ borderColor: 'rgba(99, 102, 241, 0.3)' }}>
                         <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: '#6366f1', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', letterSpacing: '0.05em' }}>
-                            COMING SOON
+                            BEST VALUE
                         </div>
                         <h3 className={styles.headingMd}>Engineer Pro</h3>
                         <div className={styles.price}>
-                            $21<span className={styles.pricePeriod}>/mo</span>
+                            $22<span className={styles.pricePeriod}>/mo</span>
                         </div>
                         <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '2rem' }}>
                             For power users who need more.
@@ -63,7 +63,7 @@ export default function PricingSection() {
                                 <span style={{ color: '#2563eb' }}>✓</span> <strong>100 GB Storage</strong>
                             </div>
                             <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', color: '#e2e8f0' }}>
-                                <span style={{ color: '#2563eb' }}>✓</span> <strong>AI Mix Assistant</strong>
+                                <span style={{ color: '#2563eb' }}>✓</span> <strong>AI Mix Assistant (Coming Soon)</strong>
                             </div>
                             <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', color: '#e2e8f0' }}>
                                 <span style={{ color: '#2563eb' }}>✓</span> Priority Support
@@ -73,9 +73,12 @@ export default function PricingSection() {
                             </div>
                         </div>
 
-                        <button disabled className={styles.btnSecondary} style={{ width: '100%', cursor: 'not-allowed', opacity: 0.5, borderColor: '#334155' }}>
-                            Join Waitlist
-                        </button>
+                        <Link href="/signup" className={styles.btnPrimary} style={{ width: '100%', backgroundColor: '#4f46e5' }}>
+                            Start Free 1-Month Trial
+                        </Link>
+                        <p style={{ marginTop: '1rem', color: '#94a3b8', fontSize: '0.85rem' }}>
+                            Cancel anytime
+                        </p>
                     </div>
                 </div>
             </div>

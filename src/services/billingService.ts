@@ -64,7 +64,7 @@ export const billingService = {
     // For this build, we will simulate the connection via API to allow testing.
     async createCheckoutSession(userId: string, planId: 'engineer_basic' | 'engineer_pro', interval: 'month' | 'year', provider: 'stripe' | 'paypal'): Promise<{ url?: string; error?: string }> {
         try {
-            const res = await fetch('/api/billing/checkout', {
+            const res = await fetch('/api/stripe/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ planId, interval, provider }) // User ID inferred from session

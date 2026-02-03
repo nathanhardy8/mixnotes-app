@@ -17,6 +17,12 @@ export interface Subscription {
   plan?: 'engineer_basic' | 'engineer_pro';
   quotaBytes?: number;
   hasAiMixAssistant?: boolean;
+
+  // Onboarding & Stripe
+  onboardingStatus?: 'LOCKED_PENDING_BILLING' | 'ACTIVE';
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  stripePriceId?: string;
 }
 
 export interface User {

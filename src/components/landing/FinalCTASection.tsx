@@ -9,8 +9,8 @@ export default function FinalCTASection() {
                 <h2 className={styles.headingLg} style={{ color: 'white' }}>
                     Ready to streamline your mixing workflow?
                 </h2>
-                <Link href="/login?view=signup" className={styles.ctaBtn}>
-                    Start Free Trial
+                <Link href="/signup" className={styles.ctaBtn}>
+                    Start Free 1-Month Trial
                 </Link>
                 <p style={{ marginTop: '1.5rem', color: '#bfdbfe', fontSize: '0.9rem' }}>
                     No card needed · Full access for 30 days

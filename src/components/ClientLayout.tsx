@@ -11,8 +11,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const pathname = usePathname();
     const router = useRouter();
 
-    // Logic: Show sidebar if user is engineer AND in engineer view mode AND not in client review pages AND not on landing page
-    const showSidebar = (viewMode === 'engineer' || viewMode === 'admin') && pathname !== '/login' && pathname !== '/' && !pathname?.startsWith('/review');
+    // Logic: Show sidebar if user is engineer AND in engineer view mode AND not in client review pages AND not on landing page AND not on setup page
+    const showSidebar = (viewMode === 'engineer' || viewMode === 'admin') && pathname !== '/login' && pathname !== '/' && !pathname?.startsWith('/review') && pathname !== '/complete-setup';
 
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
 

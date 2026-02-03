@@ -17,7 +17,7 @@ export default function HeroSection() {
                 </p>
 
                 <div style={{ marginTop: '2rem' }}>
-                    <Link href="/login?view=signup" className={styles.btnPrimary}>
+                    <Link href="/signup" className={styles.btnPrimary}>
                         Start Free 1-Month Trial
                     </Link>
                     <Link href="/login" className={styles.btnSecondary}>

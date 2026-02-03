@@ -53,24 +53,52 @@ export async function updateSession(request: NextRequest) {
     if (user) {
         const role = user.user_metadata?.role;
 
-        // If admin, they bypass everything. We don't need to check subscription.
-        if (role === 'admin') {
+        // If admin or exempt, they bypass everything.
+        // Also check if email is the specific exempt one (hardcoded or env)
+        if (role === 'admin' || user.email === 'nathan.hardy24@gmail.com') {
             return response;
         }
 
-        // If NOT admin, we might want to enforce subscription checks here OR leave it to the page / components.
-        // Requirement: "All authorization and paywall decisions must be enforced server-side"
+        if (role === 'engineer') {
+            // Check Subscription Status
+            // We need to fetch from DB because metadata might be stale
+            const { data: subscription } = await supabase
+                .from('subscriptions')
+                .select('onboarding_status, billing_status')
+                .eq('user_id', user.id)
+                .single();
 
-        // Example: Prevent access to specific "Pro" features if trial expired and not subscribed.
-        // For now, we will rely on the page components to check 'trialStatus' or 'subscription' 
-        // EXCEPT for strictly gated routes if any.
+            const onboardingStatus = subscription?.onboarding_status || 'LOCKED_PENDING_BILLING';
+            // Note: If no subscription row exists, default to LOCKED.
 
-        // If the user attempts to access a specific prohibited action, we can block it here.
-        // But for general navigation, we often allow access to the dashboard but show locked states.
+            const isLocked = onboardingStatus !== 'ACTIVE';
 
-        // Let's ensure role enforcement:
-        // If the user claims to be 'admin' in client but not in token? 
-        // The token is the source of truth here (`user.user_metadata.role`), so we are safe.
+            // Define allowed routes for locked users
+            const allowedForLocked = [
+                '/complete-setup',
+                '/billing/success',
+                '/login',
+                '/signup',
+                '/auth/callback',
+                '/api/stripe/checkout', // Allow creating session
+                '/api/auth', // Allow auth calls
+                '/_next'
+            ];
+
+            const isAllowedPath = allowedForLocked.some(route => path.startsWith(route)) || path === '/';
+            // Note: Home page '/' is public so allowed. But if they try to go to dashboard?
+
+            if (isLocked && !isAllowedPath) {
+                // Redirect to complete setup
+                // But avoid redirect loop if already there
+                if (path !== '/complete-setup') {
+                    return NextResponse.redirect(new URL('/complete-setup', request.url));
+                }
+            }
+
+            // Conversely, if ACTIVE, should we block /complete-setup? 
+            // Maybe not block, but redirect to dashboard is nice (handled in page component).
+        }
     }
 
     return response
