@@ -3,7 +3,8 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/utils/supabase/admin';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+// Fallback to a dummy key during build/static analysis if the env var is missing
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_123', {
     apiVersion: '2025-12-15.clover' as any,
 });
 
